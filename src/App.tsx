@@ -14,14 +14,16 @@ import { CalculationDrawer } from './components/CalculationDrawer'
 import type { Calculation } from './components/CalculationDrawer'
 import { Drilldown } from './views/Drilldown'
 import type { DetailView } from './views/Drilldown'
+import { runAgent } from './analysis/agent'
+import type { AgentResult, TraceStep } from './analysis/agent'
+import { useActivity } from './analysis/activity'
+import { cardTitle, calculationFor } from './components/CardContent'
 import { metricInfo } from './components/charts/options'
 
 const chips = [
   'Utforska marginalen', 'Varför ändrades marginalen?', 'Jämför omsättningen med förra året',
   'Visa marginal per produkt', 'Bevaka marginalen', 'Bygg en ledningsvy',
 ].map((label, index) => ({ id: `suggestion-${index}`, label }))
-const intro = [{ id: 'intro', role: 'assistant' as const, content: <><p>Jag har läst demonstrationsdata och byggt en ledningsvy. Omsättningen följer säsongen, men marginalen föll i juli.</p><p>Klicka på ett tal eller dubbelklicka på ett kort för att zooma in per produkt och order.</p><p>Frågor och förslag kan du skriva här.</p></> }]
-
 export default function App() {
   const [engine, setEngine] = useState<SqlEngine | null>(null)
   const [months, setMonths] = useState<string[]>([])
@@ -33,10 +35,33 @@ export default function App() {
   const [state, dispatch] = useReducer(layoutReducer, undefined, () => {
     try { return initialState(readDocument(localStorage.getItem(STORAGE_KEY))) } catch { return initialState() }
   })
+  const [canvasRevision, setCanvasRevision] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [view, setView] = useState<DetailView | null>(null)
   const [calculation, setCalculation] = useState<Calculation | null>(null)
   const scroll = useRef<HTMLDivElement>(null)
+  const [steps, setSteps] = useState<TraceStep[]>([])
+  const [analysis, setAnalysis] = useState<AgentResult | null>(null)
+  const { activities, log } = useActivity()
+  const fast = new URLSearchParams(location.search).get('fast') === '1'
+  const loggedSteps = useRef(new Set<number>())
+
+  function trace(next: TraceStep[]) {
+    setSteps(next)
+    next.forEach((step, index) => {
+      if ((step.status === 'done' || step.status === 'failed') && !loggedSteps.current.has(index)) {
+        loggedSteps.current.add(index); log(`Verktyg: ${step.tool}`, `${step.summary} · ${step.status} · ${step.duration} ms`)
+      }
+    })
+  }
+  async function analyze(metric?: Metric) {
+    if (!engine) return
+    loggedSteps.current.clear(); log('Analys startad', fmtMonth(month))
+    const result = await runAgent(engine, month, { metric, fast, onSteps: trace })
+    setAnalysis(result); setDashboard(current => current ? { ...current, analysis: result } : current)
+    log('Analys klar', result.confidence)
+    return result
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -53,6 +78,7 @@ export default function App() {
         if (cancelled) { await instance.close(); return }
         if (!latest.data) throw new Error('Ingen fullständig månad hittades.')
         live = instance
+        log('Data inläst', 'Demonstrationsdata')
         setMonths(demoDatasetInfo(rows).months)
         setMonth(latest.data)
         setEngine(instance)
@@ -65,11 +91,16 @@ export default function App() {
   useEffect(() => {
     if (!engine) return
     let cancelled = false
-    setBusy(true); setError(null)
-    void loadDashboard(engine, month).then(result => {
-      if (!cancelled) { setDashboard(result); setBusy(false) }
+    const controller = new AbortController()
+    setBusy(true); setError(null); setAnalysis(null); setSteps([])
+    loggedSteps.current.clear(); log('Analys startad', fmtMonth(month))
+    void loadDashboard(engine, month).then(async dashboard => {
+      if (cancelled) return
+      setDashboard(dashboard)
+      const result = await runAgent(engine, month, { fast, signal: controller.signal, onSteps: next => { if (!cancelled) trace(next) } })
+      if (!cancelled) { setAnalysis(result); setDashboard({ ...dashboard, analysis: result }); setBusy(false); log('Analys klar', result.confidence) }
     }).catch(cause => { if (!cancelled) { setError(String(cause)); setBusy(false) } })
-    return () => { cancelled = true }
+    return () => { cancelled = true; controller.abort() }
   }, [engine, month])
 
   useEffect(() => {
@@ -78,15 +109,27 @@ export default function App() {
 
   function add(kind: CardKind, position?: { x: number; y: number }, metric: Metric = 'revenue', product?: string) {
     const id = `${kind}-${crypto.randomUUID()}`
+    log('Kort tillagt', kind === 'table' ? 'Tabell' : kind)
     dispatch({ type: 'add', card: { id, kind, metric, product, ...(kind === 'text' ? { text: '' } : {}) }, position })
     setSelected(id)
     setView(null)
     setTimeout(() => document.querySelector(`[data-card-id="${id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50)
   }
   function drill(metric: Metric, products = false, product?: string) { setView({ metric, stage: product ? 'orders' : products ? 'products' : 'trend', product }); scroll.current?.scrollTo({ top: 0 }); }
-  function explain() { setSelected('waterfall'); setTimeout(() => document.querySelector('[data-card-id="waterfall"]')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 20) }
-  function restore() { dispatch({ type: 'reset' }); setView(null); setSelected(null); setMonth(months.at(-1) ?? '2026-08'); scroll.current?.scrollTo({ top: 0 }) }
+  function explain() { setView(null);
+    const existing = state.present.cards.find(card => card.kind === 'waterfall')
+    if (!existing) { add('waterfall', undefined, 'margin'); return }
+    setSelected(existing.id); log('Förklaring fokuserad'); setTimeout(() => document.querySelector(`[data-card-id="${existing.id}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 20) }
+  function restore() { setCanvasRevision(value => value + 1); log('Ledningsvy återbyggd'); dispatch({ type: 'reset' }); setView(null); setSelected(null); setMonth(months.at(-1) ?? '2026-08'); scroll.current?.scrollTo({ top: 0 }) }
   function watch() { window.dispatchEvent(new CustomEvent('canvas-bi:watch', { detail: { metric: 'margin', month } })) }
+  function remove(id: string) { dispatch({ type: 'remove', id }); log('Kort borttaget', state.present.cards.find(card => card.id === id)?.kind); if (selected === id) setSelected(null) }
+  useEffect(() => {
+    const uploaded = () => log('Uppladdning mottagen')
+    window.addEventListener('canvas-bi:upload', uploaded)
+    return () => window.removeEventListener('canvas-bi:upload', uploaded)
+  }, [log])
+  const selectedCard = state.present.cards.find(card => card.id === selected)
+  const selectedMetric = selectedCard?.metric ?? (selectedCard?.kind === 'waterfall' || selectedCard?.kind === 'insight' ? analysis?.metric ?? 'margin' : 'revenue')
   const title = view ? metricInfo[view.metric].label : 'Ledningsöversikt'
 
   return <div data-testid="app-root" data-ready={dashboard && !busy ? 'true' : 'false'} className="app">
@@ -108,12 +151,16 @@ export default function App() {
         <div ref={scroll} className={`workspace-scroll ${view ? 'show-detail' : ''}`}>
           {storageNotice && <p role="status" className="status-notice">Layouten sparas bara under den här sessionen eftersom webbläsarens lagring är otillgänglig.</p>}
           {error ? <div className="loading-state" role="alert"><h2>Data kunde inte läsas</h2><p>{error}</p><button onClick={() => window.location.reload()}>Försök igen</button></div> : !dashboard || !engine ? <div className="loading-state" role="status"><span className="loading-dot" /><h2>Din ledningsöversikt tar form.</h2><p>Läser demonstrationsdata och beräknar nyckeltal…</p></div> : <div aria-busy={busy} className={busy ? 'recomputing' : ''}>
-            {view ? <Drilldown view={view} dashboard={dashboard} engine={engine} onView={setView} onHow={setCalculation} /> : <Canvas document={state.present} dashboard={dashboard} engine={engine} selected={selected} onSelect={setSelected} onLayout={layout => dispatch({ type: 'layout', layout })}
-              onRemove={id => dispatch({ type: 'remove', id })} onAdd={add} onDrill={drill} onHow={setCalculation} onExplain={explain} onWatch={watch} onNote={(id, text) => dispatch({ type: 'note', id, text })} />}
+            {view ? <Drilldown view={view} dashboard={dashboard} engine={engine} onView={setView} onHow={setCalculation} /> : <Canvas key={canvasRevision} document={state.present} dashboard={dashboard} engine={engine} selected={selected} onSelect={setSelected} onLayout={layout => dispatch({ type: 'layout', layout })}
+              onRemove={remove} onAdd={add} onDrill={drill} onHow={setCalculation} onExplain={explain} onWatch={watch} onNote={(id, text) => dispatch({ type: 'note', id, text })} />}
           </div>}
         </div>
       </main>
-      <AssistantPanel messages={intro} chips={chips} />
+      <AssistantPanel chips={chips} engine={engine} dashboard={dashboard} steps={steps} result={analysis} activities={activities} log={log}
+        selected={selectedCard ? { title: cardTitle(selectedCard), metric: selectedMetric } : undefined} onClearSelection={() => setSelected(null)}
+        onAnalyze={analyze} onExplain={explain} onDrill={drill} onAdd={(kind, metric) => add(kind, undefined, metric)} onRebuild={restore}
+        onRemove={kind => { const card = kind ? state.present.cards.find(card => card.kind === kind) : selectedCard; if (!card) return false; remove(card.id); return true }}
+        onHow={metric => { if (dashboard) setCalculation(calculationFor(selectedCard && selectedMetric === metric ? selectedCard : { id: `assistant-${metric}`, kind: 'kpi', metric }, dashboard)) }} />
     </div>
     {calculation && <CalculationDrawer key={calculation.id} calculation={calculation} onClose={() => setCalculation(null)} />}
   </div>

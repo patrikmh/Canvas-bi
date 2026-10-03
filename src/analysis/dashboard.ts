@@ -2,6 +2,7 @@ import type { SqlEngine } from '../data/engine'
 import { findChangeStart, kpiSnapshot, marginWaterfall, monthlySeries, productBreakdown, unitEconomics } from '../data/metrics'
 import type { MetricResult, ProductMetrics } from '../data/metrics'
 import { literal } from '../data/sql'
+import type { AgentResult } from './agent'
 import type { Metric } from '../canvas/layout'
 
 export interface CountProductMetrics extends ProductMetrics { orders: number; compareOrders: number; customers: number; compareCustomers: number }
@@ -57,7 +58,7 @@ export async function loadDashboard(engine: SqlEngine, month: string) {
   }
   const economics = await Promise.all(waterfall.data.filter(step => step.kind === 'change' && step.label !== 'Övriga')
     .map(step => unitEconomics(engine, step.label, before, after).then(result => ({ ...result, product: step.label }))))
-  return { month, before, after, snapshot, history, products, waterfall, story, leaders, marginProducts, countProducts, economics,
+  return { analysis: undefined as AgentResult | undefined, month, before, after, snapshot, history, products, waterfall, story, leaders, marginProducts, countProducts, economics,
     changeStart: start.data && start.data <= month ? start.data : null }
 }
 export type Dashboard = Awaited<ReturnType<typeof loadDashboard>>

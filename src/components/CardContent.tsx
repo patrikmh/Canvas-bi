@@ -14,6 +14,7 @@ import { HowButton } from './HowButton'
 export const monthName = (month: string) => fmtMonth(month).replace(/ \d{4}$/, '')
 export const deltaLabel = (dashboard: Dashboard, metric: Metric) => `${metric === 'margin' ? fmtPp(dashboard.snapshot.data[metric].deltaYoY) : fmtDeltaPct(dashboard.snapshot.data[metric].deltaYoY)} mot ${monthName(dashboard.month)} i fjol`
 export function insightText(dashboard: Dashboard) {
+  if (dashboard.analysis) return dashboard.analysis.text
   const { story, economics, changeStart } = dashboard
   if (!changeStart || (story.data.drop ?? 0) <= 0) return `Omsättningen för ${fmtMonth(dashboard.month)} blev ${fmtTkr(dashboard.snapshot.data.revenue.current)}. Bruttomarginalen är ${fmtPct(dashboard.snapshot.data.margin.current)}. Följ utvecklingen och jämför produkter i korten nedan.`
   return `Bruttomarginalen sjönk från ${fmtPct(story.data.before)} till ${fmtPct(story.data.after)}, alltså ${fmtPct(story.data.drop).replace(/\s*%/, '')} procentenheter. Förändringen började i ${fmtMonth(changeStart)}. Ungefär ${fmtPct(story.data.share, 0)} av nedgången kommer från ${economics.map(result => result.product).join(' och ')}. Där har inköpskostnaden per styck ökat (${economics.map(result => `${result.product} ${fmtPct(result.data.costChangePct, 0)}`).join(', ')}) medan priset är i stort sett oförändrat.`
@@ -34,6 +35,12 @@ export function cardTitle(card: CanvasCard) {
 
 export function calculationFor(card: CanvasCard, dashboard: Dashboard): Calculation {
   const metric = card.metric ?? 'revenue'
+  if (card.kind === 'insight' && dashboard.analysis) return {
+    id: card.id, title: cardTitle(card),
+    formula: `Nyckeltalen jämförs med samma månad i fjol och de tre föregående månaderna. Produktbidrag och styckekonomi kontrolleras med SQL. ${dashboard.analysis.confidence}.`,
+    sql: dashboard.analysis.steps.map(step => step.sql).join(';\n'),
+    value: metricInfo[dashboard.analysis.metric].format(dashboard.snapshot.data[dashboard.analysis.metric].current),
+  }
   const result = card.kind === 'kpi' ? dashboard.snapshot : card.kind === 'waterfall' ? dashboard.waterfall
     : card.kind === 'trend' ? dashboard.history : card.kind === 'insight' ? dashboard.story
       : metricProducts(dashboard, metric)
@@ -58,7 +65,7 @@ export function CardContent({ card, dashboard, engine, onDrill, onHow, onExplain
   const info = metricInfo[metric]
   const how = <HowButton id={card.id} onClick={() => onHow(calculationFor(card, dashboard))} />
   if (card.kind === 'insight') return <div className="insight-content">
-    <h2>{dashboard.changeStart && (dashboard.story.data.drop ?? 0) > 0 ? 'Marginalen är det enda som behöver din uppmärksamhet.' : 'Din ledningsöversikt, samlad på en yta.'}</h2>
+    <h2>{dashboard.analysis?.title ?? (dashboard.changeStart && (dashboard.story.data.drop ?? 0) > 0 ? 'Marginalen är det enda som behöver din uppmärksamhet.' : 'Din ledningsöversikt, samlad på en yta.')}</h2>
     <p>{insightText(dashboard)}</p><div className="insight-actions"><button className="primary" onClick={onExplain}>Visa varför</button><button onClick={onWatch}>Bevaka marginalen</button></div>
   </div>
   if (card.kind === 'kpi') {

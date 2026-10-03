@@ -1,1 +1,15 @@
-["smoke-dashboard", "01-dashboard", "02-waterfall", "03-revenue-detail", "04-revenue-per-product", "05-margin-per-product", "06-how-calculated", "07-mobile"]
+[
+  "smoke-dashboard",
+  "01-dashboard",
+  "02-waterfall",
+  "03-revenue-detail",
+  "04-revenue-per-product",
+  "05-margin-per-product",
+  "06-how-calculated",
+  "07-mobile",
+  "08-agent-trace",
+  "09-approval",
+  "10-watch-active",
+  "11-activity-log",
+  "12-settings-llm"
+]
