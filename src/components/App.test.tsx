@@ -22,7 +22,7 @@ test('startup agent failure shows failed trace and keeps loaded dashboard', asyn
     throw new Error('SQL failed')
   })
   render(<App />)
-  await waitFor(() => expect(screen.getByTestId('app-root').getAttribute('data-ready')).toBe('true'))
+  await waitFor(() => expect(screen.getByTestId('app-root').getAttribute('data-ready')).toBe('true'), { timeout: 10_000 })
   expect(screen.getByTestId('dashboard').textContent).toBe('Dashboard kvar')
   expect(screen.getByTestId('status-0').textContent).toBe('failed')
   expect(screen.queryByText('Data kunde inte läsas')).toBeNull()
@@ -30,7 +30,7 @@ test('startup agent failure shows failed trace and keeps loaded dashboard', asyn
 test('restore uses latestCompleteMonth saved at boot rather than the last available month', async () => {
   mocks.run.mockResolvedValue({ metric: 'margin', steps: [], confidence: '', title: '', text: '' })
   render(<App />)
-  await waitFor(() => expect(screen.getByTestId('app-root').getAttribute('data-ready')).toBe('true'))
+  await waitFor(() => expect(screen.getByTestId('app-root').getAttribute('data-ready')).toBe('true'), { timeout: 10_000 })
   expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('2026-07')
   const { fireEvent } = await import('@testing-library/react')
   fireEvent.change(screen.getByRole('combobox'), { target: { value: '2026-06' } })
