@@ -147,15 +147,30 @@ WHERE before_margin IS NOT NULL AND after_margin IS NOT NULL ORDER BY position`
     'Periodernas marginal räknas på poolad omsättning och kostnad. Produktbidrag = omsättningsandel efter × produktmarginal efter − omsättningsandel före × produktmarginal före. Bidragen inkluderar mix och marginal och summerar exakt till Nu − Före. Övriga samlar resterande produkter.')
 }
 
-/** First abrupt downward step: ≥5 p.e. margin, or ≥20% for other metrics. */
+/** Margin steps use month/month; other metrics use season-aware, bidirectional baselines. */
 export async function findChangeStart(engine: SqlEngine, metric: keyof Omit<MonthlyMetrics, 'month' | 'cost'> = 'gross_margin_pct') {
   if (!['revenue', 'gross_margin_pct', 'orders', 'customers'].includes(metric)) throw new Error('Okänt nyckeltal')
-  const sql = `WITH monthly AS (${monthlySql}), changes AS (
+  const sql = metric === 'gross_margin_pct' ? `WITH monthly AS (${monthlySql}), changes AS (
   SELECT month, ${metric} AS value, LAG(${metric}) OVER (ORDER BY month) AS previous FROM monthly
-) SELECT month FROM changes WHERE ${metric === 'gross_margin_pct' ? 'value - previous <= -5' : 'value / NULLIF(previous, 0) <= 0.8'}
+) SELECT month FROM changes WHERE value - previous <= -5 ORDER BY month LIMIT 1` :
+    `WITH monthly AS (${monthlySql}), history AS (
+  SELECT date_diff('month', MIN((month || '-01')::DATE), MAX((month || '-01')::DATE)) AS span FROM monthly
+), baselines AS (
+  SELECT m.month, m.${metric} AS value, y.${metric} AS last_year,
+    AVG(m.${metric}) OVER (ORDER BY m.month ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING) AS rolling,
+    COUNT(*) OVER (ORDER BY m.month ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING) AS prior_count
+  FROM monthly m LEFT JOIN monthly y ON y.month = strftime((m.month || '-01')::DATE - INTERVAL '1 year', '%Y-%m')
+), growth AS (
+  SELECT *, value / NULLIF(last_year, 0) AS annual_ratio,
+    AVG(value / NULLIF(last_year, 0)) OVER (ORDER BY month ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING) AS prior_annual_ratio
+  FROM baselines
+), changes AS (
+  SELECT *, CASE WHEN span >= 12 THEN last_year * COALESCE(prior_annual_ratio, 1) WHEN prior_count = 3 THEN rolling END AS baseline
+  FROM growth CROSS JOIN history
+) SELECT month FROM changes WHERE ABS(value - baseline) / NULLIF(ABS(baseline), 0) >= 0.2
 ORDER BY month LIMIT 1`
   const rows = await engine.query<{ month: string }>(sql)
-  return { data: rows[0]?.month ?? null, sql, formula: 'Första månaden där marginalen faller minst 5 procentenheter från föregående månad (övriga nyckeltal: minst 20 %). En deterministisk brytpunktsheuristik, inte ett statistiskt signifikanstest.' }
+  return { data: rows[0]?.month ?? null, sql, formula: 'Första månaden där marginalen faller minst 5 procentenheter från föregående månad. Övriga nyckeltal: minst 20 % förändring i någon riktning mot samma månad föregående år, justerad för de tre föregående månadernas årstillväxt. För kortare historik används genomsnittet av tre föregående månader. En deterministisk brytpunktsheuristik, inte ett statistiskt signifikanstest.' }
 }
 
 export async function unitEconomics(engine: SqlEngine, product: string, beforeMonths: string[], afterMonths: string[]) {
@@ -184,11 +199,15 @@ ORDER BY date, order_id`
     'Orderrader för vald produkt och månad. Radens omsättning = antal × styckpris; kostnad = antal × styckkostnad.')
 }
 
-/** Completeness means the dataset covers the last calendar day, independent of wall clock. */
+/** Prefer the newest complete month, falling back to a flagged partial month. */
 export async function latestCompleteMonth(engine: SqlEngine) {
-  const sql = `SELECT strftime(MAX(month), '%Y-%m') AS month FROM (
+  const sql = `WITH months AS (
   SELECT date_trunc('month', date) AS month, MAX(date) AS last_date FROM sales GROUP BY month
-) WHERE last_date = last_day(month)`
-  const rows = await engine.query<{ month: string | null }>(sql)
-  return { data: rows[0]?.month ?? null, sql, formula: 'Senaste månaden där data finns till och med månadens sista kalenderdag. Datatäckning avgör fullständighet, oberoende av dagens datum.' }
+), completeness AS (
+  SELECT month, month < MAX(month) OVER () OR last_date >= last_day(month) - INTERVAL '3 days' AS complete FROM months
+) SELECT strftime(month, '%Y-%m') AS month, NOT complete AS partial
+FROM completeness ORDER BY complete DESC, month DESC LIMIT 1`
+  const rows = await engine.query<{ month: string; partial: boolean }>(sql)
+  return { data: rows[0]?.month ?? null, partial: rows[0]?.partial ?? false, sql,
+    formula: 'Senaste kompletta månad: en senare månad finns eller sista försäljningsdatum ligger högst tre dagar från månadsslut. Om ingen månad är komplett visas den senaste med markering för ofullständig månad.' }
 }

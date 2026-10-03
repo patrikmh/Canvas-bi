@@ -14,7 +14,10 @@ export async function createNodeEngine(): Promise<SqlEngine> {
   }, new duckdb.VoidLogger(), duckdb.NODE_RUNTIME)
   await db.instantiate()
   const connection = db.connect()
-  const query: SqlEngine['query'] = async <T,>(sql: string) => connection.query(sql).toArray().map(row => plainValue(row) as T)
+  const query: SqlEngine['query'] = async <T,>(sql: string) => {
+    const table = connection.query(sql)
+    return table.toArray().map(row => plainValue(row, { children: table.schema.fields }) as T)
+  }
   return {
     query,
     ...engineLoaders(query, async (name, text) => { db.registerFileText(name, text) }, async name => { db.dropFile(name) }),

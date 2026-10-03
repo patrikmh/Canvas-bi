@@ -2,8 +2,8 @@ import type { SqlEngine } from './engine'
 import type { OrderLine } from './types'
 import { createSalesSql, importSalesSql, rawCsvSql } from './sql'
 
-const fields: (keyof OrderLine)[] = ['date', 'order_id', 'customer_id', 'product', 'qty', 'unit_price', 'unit_cost', 'channel', 'region']
-const csvCell = (value: string | number | null) => value == null ? '' : `"${String(value).replace(/"/g, '""')}"`
+const fields: (keyof OrderLine)[] = ['date', 'order_id', 'customer_id', 'product', 'qty', 'unit_price', 'unit_cost', 'channel', 'region', 'revenue', 'cost']
+const csvCell = (value: string | number | null | undefined) => value == null ? '' : `"${String(value).replace(/"/g, '""')}"`
 
 /** File imports share one implementation so browser and unit SQL see identical data. */
 export function engineLoaders(
@@ -19,10 +19,18 @@ export function engineLoaders(
   }
   return {
     async loadOrderLines(rows) {
-      await query(createSalesSql)
-      if (!rows.length) return
-      const csv = `${fields.join(',')}\n${rows.map(row => fields.map(field => csvCell(row[field])).join(',')).join('\n')}\n`
-      await withFile(csv, importSalesSql)
+      await query('BEGIN TRANSACTION')
+      try {
+        await query(createSalesSql)
+        if (rows.length) {
+          const csv = `${fields.join(',')}\n${rows.map(row => fields.map(field => csvCell(row[field])).join(',')).join('\n')}\n`
+          await withFile(csv, importSalesSql)
+        }
+        await query('COMMIT')
+      } catch (error) {
+        await query('ROLLBACK')
+        throw error
+      }
     },
     async loadCsvText(name, text) {
       if (name.toLowerCase() === 'sales') throw new Error('sales är reserverad för normaliserade data')

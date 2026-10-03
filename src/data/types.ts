@@ -9,6 +9,9 @@ export interface OrderLine {
   unit_cost: number | null
   channel: string
   region: string
+  /** Optional direct totals on uploads; take precedence over quantity × unit values. */
+  revenue?: number
+  cost?: number | null
 }
 
 export type CanonicalField = keyof OrderLine | 'revenue' | 'cost'
@@ -22,4 +25,6 @@ export interface DatasetInfo {
   months: string[]
   hasCost: boolean
   mapping: ColumnMapping
+  /** Explicit user assumption, in percentage points (35 means 35%). */
+  assumption?: { kind: 'margin'; pct: number }
 }

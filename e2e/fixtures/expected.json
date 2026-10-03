@@ -1,0 +1,34 @@
+{
+  "annan-butik.csv": {
+    "rowCount": 300,
+    "monthCount": 14,
+    "latestMonth": "2026-08",
+    "revenue": 28812,
+    "cost": 16602.1,
+    "margin": 42.377828682493416
+  },
+  "utan-kostnad.csv": {
+    "rowCount": 200,
+    "monthCount": 12,
+    "latestMonth": "2026-08",
+    "revenue": 24655,
+    "cost": null,
+    "margin": null
+  },
+  "fa-rader.csv": {
+    "rowCount": 20,
+    "monthCount": 2,
+    "latestMonth": "2025-12",
+    "revenue": 14541.5,
+    "cost": 8447.65,
+    "margin": 41.90661211016745
+  },
+  "annan-butik.xlsx": {
+    "rowCount": 300,
+    "monthCount": 14,
+    "latestMonth": "2026-08",
+    "revenue": 28812,
+    "cost": 16602.1,
+    "margin": 42.377828682493416
+  }
+}

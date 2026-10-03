@@ -17,7 +17,10 @@ export async function createBrowserEngine(): Promise<SqlEngine> {
   try {
     await db.instantiate(bundle.mainModule)
     const connection = await db.connect()
-    const query: SqlEngine['query'] = async <T,>(sql: string) => (await connection.query(sql)).toArray().map(row => plainValue(row) as T)
+    const query: SqlEngine['query'] = async <T,>(sql: string) => {
+      const table = await connection.query(sql)
+      return table.toArray().map(row => plainValue(row, { children: table.schema.fields }) as T)
+    }
     return {
       query,
       ...engineLoaders(query, async (name, text) => { await db.registerFileText(name, text) }, async name => { await db.dropFile(name) }),

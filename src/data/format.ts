@@ -1,12 +1,17 @@
 type Value = number | null | undefined
 const nbsp = '\u00a0'
+const rounded = (value: number, decimals: number) => {
+  const factor = 10 ** decimals
+  const result = Math.sign(value) * Math.round(Math.abs(value) * factor) / factor
+  return result === 0 ? 0 : result
+}
 const number = (value: number, decimals: number) => new Intl.NumberFormat('sv-SE', {
   minimumFractionDigits: decimals, maximumFractionDigits: decimals,
-}).format(value).replace(/-/g, '−').replace(/[\u202f ]/g, nbsp)
+}).format(rounded(value, decimals)).replace(/-/g, '−').replace(/[\u202f ]/g, nbsp)
 const valid = (value: Value): value is number => value != null && Number.isFinite(value)
-const signed = (value: number, decimals = 1) => `${value > 0 ? '+' : ''}${number(value, decimals)}`
+const signed = (value: number, decimals = 1) => `${rounded(value, decimals) > 0 ? '+' : ''}${number(value, decimals)}`
 
-export const fmtTkr = (value: Value) => !valid(value) ? '—' : Math.abs(value) >= 10_000_000
+export const fmtTkr = (value: Value) => !valid(value) ? '—' : Math.abs(rounded(value / 1000, 0)) >= 10_000
   ? `${number(value / 1_000_000, 1)}${nbsp}mkr` : `${number(value / 1000, 0)}${nbsp}tkr`
 export const fmtPct = (value: Value, decimals = 1) => valid(value) ? `${number(value, decimals)}${nbsp}%` : '—'
 export const fmtDeltaPct = (value: Value, decimals = 1) => valid(value) ? `${signed(value, decimals)}${nbsp}%` : '—'
