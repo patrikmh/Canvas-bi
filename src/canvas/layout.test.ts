@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { defaultDocument, initialState, layoutReducer, readDocument } from './layout'
+import { defaultDocument, initialState, layoutReducer, readDocument, toolbarLayout } from './layout'
 
 describe('layout reducer and undo history', () => {
   test('add, remove, clear and reset are individually undoable', () => {
@@ -49,4 +49,17 @@ describe('layout reducer and undo history', () => {
     expect(placement.y).toBeGreaterThanOrEqual(Math.max(...initial.present.layout.map(item => item.y + item.h)))
     expect(state.present.cards.at(-1)?.metric).toBe('margin')
   })
+})
+
+test('toolbar cycles widths 3 → 6 → 12 → 3, clamps x and compacts moves', () => {
+  let layout = [{ i: 'a', x: 9, y: 5, w: 3, h: 2 }, { i: 'b', x: 0, y: 9, w: 3, h: 2 }]
+  for (const w of [6, 12, 3]) {
+    layout = [...toolbarLayout(layout, 'a', 'width')]
+    expect(layout.find(item => item.i === 'a')!.w).toBe(w)
+    expect(layout.find(item => item.i === 'a')!.x + w).toBeLessThanOrEqual(12)
+  }
+  const moved = toolbarLayout([{ i: 'a', x: 0, y: 0, w: 3, h: 2 }, { i: 'b', x: 0, y: 2, w: 3, h: 2 }], 'a', 'right')
+  expect(moved.find(item => item.i === 'b')!.y).toBe(2)
+  const gap = toolbarLayout([{ i: 'a', x: 0, y: 5, w: 3, h: 2 }], 'a', 'right')
+  expect(gap[0]).toMatchObject({ x: 1, y: 0 })
 })

@@ -35,7 +35,8 @@ test('a revenue anomaly is detected without a demo-specific margin assumption', 
     expect(result.metric).toBe('revenue')
     expect(result.text).toContain('Omsättning')
     expect(result.confidence).toBe('Hög säkerhet')
-    expect(result.steps[4].summary).toContain('0')
+    const reconciliation = await other.query<{ residual: number }>(result.steps[4].sql)
+    expect(reconciliation[0].residual).toBeCloseTo(0, 7)
     expect(result.steps.every(s => s.status === 'done')).toBe(true)
   } finally { await other.close() }
 })
@@ -56,4 +57,21 @@ test('tool failure is observable, with failed status and duration', async () => 
   expect(steps[0]).toMatchObject({ status: 'failed', summary: 'Error: SQL unavailable' })
   expect(steps[0].duration).toBeGreaterThanOrEqual(0)
   expect(steps.slice(1).every(step => step.status === 'pending')).toBe(true)
+})
+
+test('trace names match the SQL actually used without discarded metric calls', async () => {
+  const result = await runAgent(engine, '2026-08', { fast: true })
+  expect(result.steps.map(step => step.tool)).toEqual(['scanKpis', 'findLatestChange', 'marginWaterfall', 'unitEconomics', 'reconcileWaterfall'])
+  expect(result.steps[0].sql).toContain("UNION ALL")
+  for (const index of [1, 2, 4]) expect(result.steps[index].sql).not.toContain(';\n')
+})
+test('agent states SQL-backed price changes when a contributor price changes by at least two percent', async () => {
+  const other = await createNodeEngine()
+  try {
+    await other.loadOrderLines(generateDemoData().map(row => ({ ...row, unit_price: row.unit_price * (row.date >= '2026-07' && ['Ullfilt', 'Linnepläd'].includes(row.product) ? 1.03 : 1) })))
+    const result = await runAgent(other, '2026-08', { fast: true, metric: 'margin' })
+    expect(result.text).not.toContain('priset är i stort sett oförändrat')
+    expect(result.text).toContain('Prisförändring:')
+    expect(result.text).toContain('+3,0')
+  } finally { await other.close() }
 })

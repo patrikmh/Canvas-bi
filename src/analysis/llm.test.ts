@@ -10,7 +10,7 @@ test('default off makes no network call', async () => {
   await chooseIntent('Bevaka marginalen', { ...settings, enabled: false }, undefined, fetcher)
   expect(fetcher).not.toHaveBeenCalled()
 })
-test('untrusted tool arguments fall back; model numbers never become replies', async () => {
+test('valid tool arguments are accepted; provider prose and numbers never become replies', async () => {
   const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ choices: [{ message: { content: '999 %', tool_calls: [{ function: { arguments: '{"request":"lägg till en tabell"}' } }] } }] }) })
   expect(await chooseIntent('lägg till en tabell', settings, undefined, fetcher)).toMatchObject({ intent: { kind: 'add', card: 'table' }, fallback: false })
 })
@@ -27,7 +27,7 @@ test('eight-second timeout falls back and aborts the request', async () => {
     const fetcher = vi.fn((_url, init) => { signal = init.signal; return new Promise<Response>(() => {}) })
     const pending = chooseIntent('watch margin', settings, undefined, fetcher)
     await vi.advanceTimersByTimeAsync(8000)
-    expect(await pending).toMatchObject({ intent: { kind: 'watch' }, fallback: true })
+    expect(await pending).toMatchObject({ intent: { kind: 'watch' }, fallback: true, fallbackReason: 'timeout' })
     expect(signal?.aborted).toBe(true)
   } finally { vi.useRealTimers() }
 })
@@ -40,4 +40,11 @@ test.each(['OpenAI', 'Anthropic', 'OpenRouter'] as const)('%s uses an explicit t
   expect(url).toContain(provider === 'Anthropic' ? 'api.anthropic.com' : provider === 'OpenAI' ? 'api.openai.com' : 'openrouter.ai')
   expect(JSON.parse(init.body).tools).toHaveLength(1)
   expect(JSON.stringify(result)).not.toContain('999')
+})
+
+test('provider HTTP errors and unsupported requests have different fallback reasons', async () => {
+  const httpError = vi.fn().mockResolvedValue({ ok: false })
+  expect(await chooseIntent('compare revenue', settings, undefined, httpError)).toMatchObject({ fallback: true, fallbackReason: 'error' })
+  const unsupported = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ choices: [{ message: { tool_calls: [{ function: { name: 'assistant_action', arguments: '{"request":"weather"}' } }] } }] }) })
+  expect(await chooseIntent('compare revenue', settings, undefined, unsupported)).toMatchObject({ fallback: true, fallbackReason: 'not-understood' })
 })

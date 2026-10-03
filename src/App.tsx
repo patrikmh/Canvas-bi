@@ -14,7 +14,7 @@ import { CalculationDrawer } from './components/CalculationDrawer'
 import type { Calculation } from './components/CalculationDrawer'
 import { Drilldown } from './views/Drilldown'
 import type { DetailView } from './views/Drilldown'
-import { runAgent } from './analysis/agent'
+import { AgentRunController } from './analysis/runController'
 import type { AgentResult, TraceStep } from './analysis/agent'
 import { useActivity } from './analysis/activity'
 import { cardTitle, calculationFor } from './components/CardContent'
@@ -28,6 +28,10 @@ export default function App() {
   const [engine, setEngine] = useState<SqlEngine | null>(null)
   const [months, setMonths] = useState<string[]>([])
   const [month, setMonth] = useState('2026-08')
+  const bootMonth = useRef<string | null>(null)
+  const currentMonth = useRef(month)
+  currentMonth.current = month
+  const runs = useRef(new AgentRunController())
   const [dashboard, setDashboard] = useState<Dashboard | null>(null)
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -38,6 +42,14 @@ export default function App() {
   const [canvasRevision, setCanvasRevision] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [view, setView] = useState<DetailView | null>(null)
+  const [exitingDetail, setExitingDetail] = useState(false)
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(exitTimer.current), [])
+  function exitDetail() {
+    if (!view || exitingDetail) return
+    setExitingDetail(true)
+    exitTimer.current = setTimeout(() => { setView(null); setExitingDetail(false); scroll.current?.scrollTo({ top: 0 }) }, 200)
+  }
   const [calculation, setCalculation] = useState<Calculation | null>(null)
   const scroll = useRef<HTMLDivElement>(null)
   const [steps, setSteps] = useState<TraceStep[]>([])
@@ -56,11 +68,14 @@ export default function App() {
   }
   async function analyze(metric?: Metric) {
     if (!engine) return
-    loggedSteps.current.clear(); log('Analys startad', fmtMonth(month))
-    const result = await runAgent(engine, month, { metric, fast, onSteps: trace })
-    setAnalysis(result); setDashboard(current => current ? { ...current, analysis: result } : current)
-    log('Analys klar', result.confidence)
-    return result
+    const runMonth = month
+    loggedSteps.current.clear(); log('Analys startad', fmtMonth(runMonth))
+    const result = await runs.current.run(engine, runMonth, { metric, fast, onSteps: next => { if (currentMonth.current === runMonth) trace(next) } })
+    if (result && currentMonth.current === runMonth) {
+      setAnalysis(result); setDashboard(current => current?.month === runMonth ? { ...current, analysis: result } : current)
+      log('Analys klar', result.confidence)
+      return result
+    }
   }
 
   useEffect(() => {
@@ -80,6 +95,7 @@ export default function App() {
         live = instance
         log('Data inläst', 'Demonstrationsdata')
         setMonths(demoDatasetInfo(rows).months)
+        bootMonth.current = latest.data
         setMonth(latest.data)
         setEngine(instance)
       } catch (cause) { await instance?.close(); if (!cancelled) { setError(String(cause)); setBusy(false) } }
@@ -91,16 +107,21 @@ export default function App() {
   useEffect(() => {
     if (!engine) return
     let cancelled = false
-    const controller = new AbortController()
+    runs.current.cancel()
     setBusy(true); setError(null); setAnalysis(null); setSteps([])
     loggedSteps.current.clear(); log('Analys startad', fmtMonth(month))
     void loadDashboard(engine, month).then(async dashboard => {
-      if (cancelled) return
+      if (cancelled || currentMonth.current !== month) return
       setDashboard(dashboard)
-      const result = await runAgent(engine, month, { fast, signal: controller.signal, onSteps: next => { if (!cancelled) trace(next) } })
-      if (!cancelled) { setAnalysis(result); setDashboard({ ...dashboard, analysis: result }); setBusy(false); log('Analys klar', result.confidence) }
+      try {
+        const result = await runs.current.run(engine, month, { fast, onSteps: next => { if (!cancelled && currentMonth.current === month) trace(next) } })
+        if (result && !cancelled && currentMonth.current === month) {
+          setAnalysis(result); setDashboard(current => current?.month === month ? { ...current, analysis: result } : current); log('Analys klar', result.confidence)
+        }
+      } catch (cause) { if (!cancelled) log('Analys misslyckades', String(cause)) }
+      finally { if (!cancelled && currentMonth.current === month) setBusy(false) }
     }).catch(cause => { if (!cancelled) { setError(String(cause)); setBusy(false) } })
-    return () => { cancelled = true; controller.abort() }
+    return () => { cancelled = true; runs.current.cancel() }
   }, [engine, month])
 
   useEffect(() => {
@@ -115,12 +136,12 @@ export default function App() {
     setView(null)
     setTimeout(() => document.querySelector(`[data-card-id="${id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50)
   }
-  function drill(metric: Metric, products = false, product?: string) { setView({ metric, stage: product ? 'orders' : products ? 'products' : 'trend', product }); scroll.current?.scrollTo({ top: 0 }); }
+  function drill(metric: Metric, products = false, product?: string) { clearTimeout(exitTimer.current); setExitingDetail(false); setView({ metric, stage: product ? 'orders' : products ? 'products' : 'trend', product }); scroll.current?.scrollTo({ top: 0 }); }
   function explain() { setView(null);
     const existing = state.present.cards.find(card => card.kind === 'waterfall')
     if (!existing) { add('waterfall', undefined, 'margin'); return }
     setSelected(existing.id); log('Förklaring fokuserad'); setTimeout(() => document.querySelector(`[data-card-id="${existing.id}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 20) }
-  function restore() { setCanvasRevision(value => value + 1); log('Ledningsvy återbyggd'); dispatch({ type: 'reset' }); setView(null); setSelected(null); setMonth(months.at(-1) ?? '2026-08'); scroll.current?.scrollTo({ top: 0 }) }
+  function restore() { setCanvasRevision(value => value + 1); log('Ledningsvy återbyggd'); dispatch({ type: 'reset' }); setView(null); setSelected(null); setMonth(bootMonth.current ?? month); scroll.current?.scrollTo({ top: 0 }) }
   function watch() { window.dispatchEvent(new CustomEvent('canvas-bi:watch', { detail: { metric: 'margin', month } })) }
   function remove(id: string) { dispatch({ type: 'remove', id }); log('Kort borttaget', state.present.cards.find(card => card.id === id)?.kind); if (selected === id) setSelected(null) }
   useEffect(() => {
@@ -140,7 +161,7 @@ export default function App() {
         <header className="workspace-header">
           {view ? <nav className="breadcrumbs" aria-label="Navigering"><button onClick={() => setView({ metric: view.metric, stage: 'trend' })}>{title}</button>{view.stage !== 'trend' && <><span>›</span><button onClick={() => setView({ metric: view.metric, stage: 'products' })}>Per produkt</button></>}{view.product && <><span>›</span><strong>{view.product}</strong></>}</nav> : <h1>{title}</h1>}
           <div className="workspace-actions">
-            {view ? <><button onClick={() => add(view.stage === 'trend' ? 'trend' : view.stage === 'orders' ? 'table' : 'bars', undefined, view.metric, view.product)}>Lägg på ytan</button><button onClick={() => { setView(null); scroll.current?.scrollTo({ top: 0 }) }}>Tillbaka till ytan</button></> : <>
+            {view ? <><button onClick={() => add(view.stage === 'trend' ? 'trend' : view.stage === 'orders' ? 'table' : 'bars', undefined, view.metric, view.product)}>Lägg på ytan</button><button onClick={exitDetail}>Tillbaka till ytan</button></> : <>
               <select aria-label="Period" value={month} onChange={event => { setMonth(event.target.value); setCalculation(null) }}>{(months.length ? months : [month]).map(value => <option key={value} value={value}>{fmtMonth(value).charAt(0).toUpperCase() + fmtMonth(value).slice(1)}</option>)}</select>
               <button onClick={() => dispatch({ type: 'undo' })} disabled={!state.past.length}>Ångra</button>
               <button onClick={() => { dispatch({ type: 'clear' }); setSelected(null) }}>Töm ytan</button>
@@ -151,12 +172,12 @@ export default function App() {
         <div ref={scroll} className={`workspace-scroll ${view ? 'show-detail' : ''}`}>
           {storageNotice && <p role="status" className="status-notice">Layouten sparas bara under den här sessionen eftersom webbläsarens lagring är otillgänglig.</p>}
           {error ? <div className="loading-state" role="alert"><h2>Data kunde inte läsas</h2><p>{error}</p><button onClick={() => window.location.reload()}>Försök igen</button></div> : !dashboard || !engine ? <div className="loading-state" role="status"><span className="loading-dot" /><h2>Din ledningsöversikt tar form.</h2><p>Läser demonstrationsdata och beräknar nyckeltal…</p></div> : <div aria-busy={busy} className={busy ? 'recomputing' : ''}>
-            {view ? <Drilldown view={view} dashboard={dashboard} engine={engine} onView={setView} onHow={setCalculation} /> : <Canvas key={canvasRevision} document={state.present} dashboard={dashboard} engine={engine} selected={selected} onSelect={setSelected} onLayout={layout => dispatch({ type: 'layout', layout })}
+            {view ? <Drilldown exiting={exitingDetail} view={view} dashboard={dashboard} engine={engine} onView={setView} onHow={setCalculation} /> : <Canvas key={canvasRevision} document={state.present} dashboard={dashboard} engine={engine} selected={selected} onSelect={setSelected} onLayout={layout => dispatch({ type: 'layout', layout })}
               onRemove={remove} onAdd={add} onDrill={drill} onHow={setCalculation} onExplain={explain} onWatch={watch} onNote={(id, text) => dispatch({ type: 'note', id, text })} />}
           </div>}
         </div>
       </main>
-      <AssistantPanel chips={chips} engine={engine} dashboard={dashboard} steps={steps} result={analysis} activities={activities} log={log}
+      <AssistantPanel analyzing={busy || steps.some(step => step.status === 'running')} chips={chips} engine={engine} dashboard={dashboard} steps={steps} result={analysis} activities={activities} log={log}
         selected={selectedCard ? { title: cardTitle(selectedCard), metric: selectedMetric } : undefined} onClearSelection={() => setSelected(null)}
         onAnalyze={analyze} onExplain={explain} onDrill={drill} onAdd={(kind, metric) => add(kind, undefined, metric)} onRebuild={restore}
         onRemove={kind => { const card = kind ? state.present.cards.find(card => card.kind === kind) : selectedCard; if (!card) return false; remove(card.id); return true }}

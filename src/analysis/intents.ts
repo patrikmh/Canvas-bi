@@ -16,7 +16,7 @@ export function matchIntent(text: string, context?: Metric): Intent {
   if (/per produkt|by product/.test(q)) return { kind: metric === 'margin' ? 'marginProducts' : 'revenueProducts', metric }
   const months = ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december']
   const month = months.findIndex(m => new RegExp(`\\b${m}\\b`).test(q)) + 1
-  if (month && metric === 'margin') return { kind: 'monthMargin', month }
+  if (month) return { kind: 'monthMargin', month, metric }
   if (context && /jamfor|compare|mot.*fjol|last year/.test(q)) return { kind: metric === 'margin' ? 'margin' : 'revenue', metric }
   if (metric === 'margin' && /visa|utforska|explore|margin|marginal/.test(q)) return { kind: 'margin' }
   if (/omsatt|forsalj|revenue|sales/.test(q)) return { kind: 'revenue' }

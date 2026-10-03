@@ -5,6 +5,8 @@ import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import type { Dashboard } from '../analysis/dashboard'
 import type { CanvasCard, CanvasDocument, CardKind, Metric } from './layout'
+import { toolbarLayout } from './layout'
+import './canvas.css'
 import { CardContent, cardTitle } from '../components/CardContent'
 import type { Calculation } from '../components/CalculationDrawer'
 import type { SqlEngine } from '../data/engine'
@@ -33,14 +35,14 @@ export function Canvas(props: Props) {
     observer.observe(container.current!)
     return () => observer.disconnect()
   }, [])
-  const shift = (card: CanvasCard, amount: number) => props.onLayout(props.document.layout.map(item => item.i === card.id ? { ...item, x: Math.max(0, Math.min(12 - item.w, item.x + amount)) } : item))
-  const cards = props.document.cards.map(card => <div key={card.id} className={`canvas-card kind-${card.kind} ${props.selected === card.id ? 'selected' : ''}`}
-    data-testid={`card-${card.id}`} data-card-id={card.id} tabIndex={0} onFocus={event => { if (event.target === event.currentTarget) props.onSelect(card.id) }} onClick={event => { if (!(event.target as HTMLElement).closest('button,input,textarea')) props.onSelect(card.id) }}
+  const shift = (card: CanvasCard, amount: number) => props.onLayout(toolbarLayout(props.document.layout, card.id, amount < 0 ? 'left' : 'right'))
+  const cards = props.document.cards.map((card, index) => <div key={card.id} className={`canvas-card kind-${card.kind} ${props.selected === card.id ? 'selected' : ''}`}
+    style={{ animationDelay: `${index * 70}ms` }} data-testid={`card-${card.id}`}  data-card-id={card.id} tabIndex={0} onFocus={event => { if (event.target === event.currentTarget) props.onSelect(card.id) }} onClick={event => { if (!(event.target as HTMLElement).closest('button,input,textarea')) props.onSelect(card.id) }}
     onDoubleClick={event => { if (!(event.target as HTMLElement).closest('button,input,textarea')) props.onDrill(card.metric ?? (card.kind === 'waterfall' ? 'margin' : 'revenue'), card.kind === 'bars' || card.kind === 'table') }}>
     <div className="card-toolbar" aria-label={`Verktyg för ${cardTitle(card)}`}>
       <button aria-label={`Flytta ${cardTitle(card)} åt vänster`} onClick={() => shift(card, -1)}>‹</button>
       <button aria-label={`Flytta ${cardTitle(card)} åt höger`} onClick={() => shift(card, 1)}>›</button>
-      <button aria-label={`Ändra storlek på ${cardTitle(card)}`} onClick={() => props.onLayout(props.document.layout.map(item => item.i === card.id ? { ...item, h: item.h + 1 } : item))}>↔</button>
+      <button aria-label={`Ändra storlek på ${cardTitle(card)}`} onClick={() => props.onLayout(toolbarLayout(props.document.layout, card.id, 'width'))}>↔</button>
       <button aria-label={`Ta bort ${cardTitle(card)}`} data-testid={`remove-${card.id}`} onClick={() => props.onRemove(card.id)}>✕</button>
     </div>
     <div className="card-heading"><span className="drag-handle" aria-label={`Dra ${cardTitle(card)}`} title="Dra för att flytta" onPointerDown={() => props.onSelect(card.id)}>⠿</span><h3>{cardTitle(card)}</h3></div>

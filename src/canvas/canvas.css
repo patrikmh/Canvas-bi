@@ -1,0 +1,3 @@
+.canvas-card { animation-duration: 350ms; }
+.insight-actions { align-items: center; flex-wrap: wrap; }
+.insight-actions .how-button { align-self: center; padding: 0; }

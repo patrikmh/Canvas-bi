@@ -24,3 +24,9 @@ test('explicit metrics override selection; abbreviated questions use selected ca
   expect(matchIntent('varför?', 'revenue')).toMatchObject({ kind: 'explain', metric: 'revenue' })
   expect(matchIntent('jämför med förra året', 'revenue')).toMatchObject({ kind: 'revenue', metric: 'revenue' })
 })
+test.each(['orders', 'customers', 'margin'] as const)('comparison retains selected %s', metric => {
+  expect(matchIntent('jämför med förra året', metric)).toMatchObject({ metric, kind: metric === 'margin' ? 'margin' : 'revenue' })
+})
+test.each(['omsättningen', 'marginalen', 'ordrar', 'kunder'])('month intent supports %s', name => {
+  expect(matchIntent(`vad är ${name} i december`)).toMatchObject({ month: 12 })
+})

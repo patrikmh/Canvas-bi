@@ -1,0 +1,71 @@
+import { test, expect } from '@playwright/test'
+
+test('startup chips cannot overlap the coherent five-step trace; changing month cancels stale analysis', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByTestId('trace-step-0')).toHaveAttribute('data-status', 'running')
+  const chip = page.getByRole('button', { name: 'Varför ändrades marginalen?', exact: true })
+  await expect(chip).toBeDisabled()
+  await chip.dispatchEvent('click')
+  await expect(page.getByTestId('assistant-message')).toHaveCount(0)
+  await page.getByRole('combobox', { name: 'Period' }).selectOption('2026-06')
+  await expect(page.getByTestId('app-root')).toHaveAttribute('data-ready', 'true')
+  await expect(page.getByTestId('agent-trace').locator('details')).toHaveCount(5)
+  for (let index = 0; index < 5; index++) await expect(page.getByTestId(`trace-step-${index}`)).toHaveAttribute('data-status', 'done')
+  await expect(chip).toBeEnabled()
+  await page.getByTestId('trace-step-0').locator('summary').click()
+  await expect(page.getByTestId('trace-step-0').locator('pre').first()).toContainText('2026-06')
+  await page.getByRole('tab', { name: 'Aktivitet', exact: true }).click()
+  await expect(page.getByTestId('activity-log').getByText('Analys klar', { exact: true })).toHaveCount(1)
+})
+
+test('selection preserves chart SVG, insight exposes SQL, width cycles and rebuilt cards stagger', async ({ page }) => {
+  await page.goto('/?fast=1')
+  await expect(page.getByTestId('app-root')).toHaveAttribute('data-ready', 'true')
+  const svg = await page.getByTestId('kpi-revenue').locator('svg').elementHandle()
+  await page.getByTestId('card-kpi-orders').focus()
+  expect(await svg!.evaluate(node => node === node.ownerDocument.querySelector('[data-testid="kpi-revenue"] svg'))).toBe(true)
+  await page.getByTestId('how-insight').click()
+  await expect(page.getByTestId('calculation-drawer')).toContainText('FROM sales')
+  await page.keyboard.press('Escape')
+  await page.getByTestId('card-kpi-revenue').focus()
+  const width = () => page.evaluate(() => JSON.parse(localStorage.getItem('canvas-bi:v1:layout')!).layout.find((item: { i: string }) => item.i === 'kpi-revenue').w)
+  for (const expected of [6, 12, 3]) {
+    await page.getByRole('button', { name: 'Ändra storlek på Omsättning', exact: true }).click()
+    await expect.poll(width).toBe(expected)
+  }
+  await page.getByRole('button', { name: 'Bygg en ledningsvy', exact: true }).click()
+  const delays = await page.locator('[data-card-id]').evaluateAll(cards => cards.map(card => parseFloat(card.ownerDocument.defaultView!.getComputedStyle(card).animationDelay)))
+  expect(delays[0]).toBe(0)
+  expect(delays[1]).toBeGreaterThan(delays[0])
+  expect(delays.at(-1)).toBeGreaterThan(delays[1])
+})
+
+test('selected metric comparisons and latest available month work through the assistant', async ({ page }) => {
+  await page.goto('/?fast=1')
+  await expect(page.getByTestId('app-root')).toHaveAttribute('data-ready', 'true')
+  for (const [metric, title, unit] of [['orders', 'Ordrar', '%'], ['customers', 'Kunder', '%'], ['margin', 'Bruttomarginal', 'p.e.']]) {
+    await page.getByTestId(`card-kpi-${metric}`).focus()
+    await page.getByRole('textbox', { name: 'Fråga eller be mig ändra något' }).fill('jämför med förra året')
+    await page.getByRole('button', { name: 'Skicka', exact: true }).click()
+    await expect(page.getByTestId('assistant-message').last()).toContainText(title)
+    await expect(page.getByTestId('assistant-message').last()).toContainText(unit)
+    await expect(page.getByTestId('assistant-message').last()).not.toContainText('tkr')
+    await page.getByRole('button', { name: 'Tillbaka till ytan', exact: true }).click()
+    await expect(page.getByTestId('canvas')).toBeVisible()
+  }
+  await page.getByRole('textbox', { name: 'Fråga eller be mig ändra något' }).fill('vad är omsättningen i december')
+  await page.getByRole('button', { name: 'Skicka', exact: true }).click()
+  await expect(page.getByTestId('assistant-message').last()).toContainText('december 2025')
+})
+
+test('drilldown remains mounted for the 200 ms exit transition', async ({ page }) => {
+  await page.goto('/?fast=1')
+  await expect(page.getByTestId('app-root')).toHaveAttribute('data-ready', 'true')
+  await page.getByRole('button', { name: 'Utforska Omsättning', exact: true }).click()
+  await expect(page.getByTestId('detail-view')).toBeVisible()
+  await page.getByRole('button', { name: 'Tillbaka till ytan', exact: true }).click()
+  await expect(page.getByTestId('detail-view')).toHaveClass(/detail-exiting/)
+  expect(await page.getByTestId('detail-view').evaluate(node => node.ownerDocument.defaultView!.getComputedStyle(node).animationDuration)).toBe('0.2s')
+  await expect(page.getByTestId('detail-view')).toHaveCount(0)
+  await expect(page.getByTestId('canvas')).toBeVisible()
+})

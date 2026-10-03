@@ -63,10 +63,10 @@ export function productOption(rows: ProductChartRow[], metric: Metric, month: st
 export function waterfallOption(steps: WaterfallStep[]): EChartsOption {
   // Coordinates only: the financial contributions are returned by marginWaterfall SQL.
   let running = 0
-  const bases: number[] = [], totals: (number | '-')[] = [], changes: (number | '-')[] = []
+  const bases: number[] = [], totals: (number | '-')[] = [], changes: ({ value: number; itemStyle: { color: string } } | '-')[] = []
   for (const step of steps) {
     if (step.kind === 'total') { bases.push(0); totals.push(step.value); changes.push('-'); running = step.value }
-    else { bases.push(Math.min(running, running + step.value)); totals.push('-'); changes.push(Math.abs(step.value)); running += step.value }
+    else { bases.push(Math.min(running, running + step.value)); totals.push('-'); changes.push({ value: Math.abs(step.value), itemStyle: { color: step.value < 0 ? red : '#2f7d4f' } }); running += step.value }
   }
   return {
     grid: { left: 52, right: 16, top: 25, bottom: 32 },

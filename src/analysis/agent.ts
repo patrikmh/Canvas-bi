@@ -1,9 +1,10 @@
 import type { SqlEngine } from '../data/engine'
-import { findChangeStart, kpiSnapshot, marginWaterfall, monthlySeries, productBreakdown, unitEconomics } from '../data/metrics'
+import { kpiSnapshot, marginWaterfall, monthlySeries, unitEconomics } from '../data/metrics'
 import type { KpiSnapshot, MonthlyMetrics, MetricResult, WaterfallStep } from '../data/metrics'
 import { fmtDeltaPct, fmtInt, fmtMonth, fmtPct, fmtPp, fmtTkr } from '../data/format'
 import { literal } from '../data/sql'
 import type { Metric } from '../canvas/layout'
+import { priceClause } from './answers'
 import { shiftMonth } from './dashboard'
 export interface TraceStep { label: string; tool: string; input: unknown; sql: string; summary: string; status: 'pending' | 'running' | 'done' | 'failed'; duration: number }
 export interface AgentResult { metric: Metric; title: string; text: string; confidence: string; steps: TraceStep[] }
@@ -29,7 +30,7 @@ export async function runAgent(engine: SqlEngine, month: string, options: { metr
   let snapshot!: MetricResult<KpiSnapshot>
   let series!: MetricResult<MonthlyMetrics[]>
   let history: MonthlyMetrics[] = []
-  const scan = await call(0, 'kpiSnapshot / monthlySeries', { month, compare: ['lastYear', 'priorThreeMonths'], thresholds: { marginPp: 5, otherPct: 20 }, ranking: 'smaller normalized change across both comparisons' }, async () => {
+  const scan = await call(0, 'scanKpis', { month, compare: ['lastYear', 'priorThreeMonths'], thresholds: { marginPp: 5, otherPct: 20 }, ranking: 'smaller normalized change across both comparisons' }, async function scanKpis() {
     snapshot = await kpiSnapshot(engine, month)
     series = await monthlySeries(engine)
     history = series.data.filter(row => row.month <= month)
@@ -49,26 +50,24 @@ export async function runAgent(engine: SqlEngine, month: string, options: { metr
   }, rows => rows.map(row => `${names[row.metric]}: år ${fmtPct(row.yoy == null ? null : row.yoy * 100)}, senaste tre månader ${fmtPct(row.recent == null ? null : row.recent * 100)}`).join(' · '))
   const metric = options.metric ?? scan.data[0]?.metric ?? 'margin'
   steps[0].label = metric === 'margin' ? labels[0] : `Bekräftar att ${names[metric].toLowerCase()} har ändrats`
-  const start = await call(1, 'findChangeStart', { metric: metricColumn[metric], through: month, rule: 'latest abrupt change, either direction' }, async () => {
-    const original = await findChangeStart(engine, metricColumn[metric])
+  const start = await call(1, 'findLatestChange', { metric: metricColumn[metric], through: month, rule: 'latest abrupt change, either direction' }, async function findLatestChange() {
     const column = metricColumn[metric]
-    // The shared metric finds the earliest drop. Bound to the selected month and also allow increases.
+    // Bound the latest abrupt change to the selected month, in either direction.
     const sql = `WITH monthly AS (${series.sql}), changes AS (
       SELECT month, ${column} AS value, LAG(${column}) OVER (ORDER BY month) AS previous FROM monthly
     ) SELECT month FROM changes WHERE month <= ${literal(month)} AND
       ${metric === 'margin' ? 'ABS(value - previous) >= 5' : 'ABS(value / NULLIF(previous, 0) - 1) >= 0.2'}
       ORDER BY month DESC LIMIT 1`
     const rows = await engine.query<{ month: string }>(sql)
-    return { data: rows[0]?.month ?? null, sql: `${original.sql};\n${sql}`, formula: original.formula }
+    return { data: rows[0]?.month ?? null, sql, formula: 'Senaste absoluta månadsförändring inom vald period: minst 5 procentenheter för marginal, annars minst 20 procent.' }
   }, value => value ? `Senaste tydliga brytpunkt: ${fmtMonth(value)}.` : 'Ingen tydlig brytpunkt hittades.')
   const changeStart = start.data && start.data <= month ? start.data : null
   // Follow the detected break, bounded to the selected period. A missing break uses the latest month.
   const boundary = changeStart ?? month
   const before = [-3, -2, -1].map(offset => shiftMonth(boundary, offset))
   const after = history.filter(row => row.month >= boundary).map(row => row.month)
-  const breakdown = await call(2, metric === 'margin' ? 'marginWaterfall' : 'productBreakdown', { metric, before, after }, async () => {
+  const breakdown = await call(2, metric === 'margin' ? 'marginWaterfall' : 'allocateProductChanges', { metric, before, after }, async function allocateProductChanges() {
     if (metric === 'margin') return marginWaterfall(engine, before, after.length ? after : [month])
-    const products = await productBreakdown(engine, month, shiftMonth(month, -12))
     const aggregate = metric === 'revenue' ? 'SUM(revenue)' : `COUNT(DISTINCT ${metric === 'orders' ? 'order_id' : 'customer_id'})`
     const months = [...before, ...after].map(literal).join(',')
     const sql = `WITH grouped AS (
@@ -95,22 +94,22 @@ export async function runAgent(engine: SqlEngine, month: string, options: { metr
       UNION ALL SELECT 'Övriga', COALESCE(SUM(value),0), 'change', 3 FROM ranked WHERE rank > 2
       UNION ALL SELECT 'Nu', value, 'total', 4 FROM totals WHERE period = 'after'
     ) SELECT label, value, kind FROM steps ORDER BY position`
-    return { data: await engine.query<WaterfallStep>(sql), sql: `${products.sql};\n${sql}`, formula: 'Produktandelar fördelar månadens total. Perioder jämförs som månadsgenomsnitt. Produktbidragen summerar till totalens förändring.' }
+    return { data: await engine.query<WaterfallStep>(sql), sql, formula: 'Produktandelar fördelar månadens total. Perioder jämförs som månadsgenomsnitt. Produktbidragen summerar till totalens förändring.' }
   }, rows => rows.map(row => `${row.label}: ${metric === 'margin' && row.kind === 'change' ? fmtPp(row.value) : format(metric, row.value)}`).join(' · '))
   const contributors = breakdown.data.filter(row => row.kind === 'change' && row.label !== 'Övriga').slice(0, 2)
-  const economics = await call(3, 'unitEconomics', { products: contributors.map(row => row.label), before, after }, async () => {
+  const economics = await call(3, contributors.length ? 'unitEconomics' : 'checkProductContributors', { products: contributors.map(row => row.label), before, after }, async function checkProductContributors() {
     const results = await Promise.all(contributors.map(row => unitEconomics(engine, row.label, before, after.length ? after : [month]).then(result => ({ ...result, product: row.label }))))
-    return { data: results, sql: results.map(result => result.sql).join(';\n') || series.sql, formula: '' }
+    return { data: results, sql: results.map(result => result.sql).join(';\n'), formula: '' }
   }, rows => rows.map(row => `${row.product}: styckkostnad ${fmtDeltaPct(row.data.costChangePct)}, pris ${fmtDeltaPct(row.data.priceChangePct)}`).join(' · ') || 'Inga produktbidrag att testa.')
   const endpoints = breakdown.data.filter(row => row.kind === 'total')
-  const verifySql = `WITH steps AS (${breakdown.sql.split(';\n').at(-1)}) SELECT
+  const verifySql = `WITH steps AS (${breakdown.sql}) SELECT
     MAX(value) FILTER (WHERE label = 'Före') AS before, MAX(value) FILTER (WHERE label = 'Nu') AS after,
     MAX(value) FILTER (WHERE label = 'Före') - MAX(value) FILTER (WHERE label = 'Nu') AS drop,
     ROUND(100.0 * SUM(value) FILTER (WHERE kind = 'change' AND label <> 'Övriga') / NULLIF(MAX(value) FILTER (WHERE label = 'Nu') - MAX(value) FILTER (WHERE label = 'Före'),0) / 5) * 5 AS share,
     ABS(SUM(value) FILTER (WHERE kind = 'change') - (MAX(value) FILTER (WHERE label = 'Nu') - MAX(value) FILTER (WHERE label = 'Före'))) AS residual FROM steps`
-  const verified = await call(4, 'monthlySeries / reconciliation', { month, metric }, async () => ({
+  const verified = await call(4, 'reconcileWaterfall', { month, metric }, async function reconcileWaterfall() { return {
     data: (await engine.query<{ before: number | null; after: number | null; drop: number | null; share: number | null; residual: number | null }>(verifySql))[0], sql: verifySql, formula: breakdown.formula,
-  }), row => `Kontrollerat: ${format(metric, row.before)} → ${format(metric, row.after)}; produktbidragen summerar med avvikelse ${format(metric, row.residual)}.`)
+  } }, row => `Kontrollerat: ${format(metric, row.before)} → ${format(metric, row.after)}; produktbidragen summerar med avvikelse ${format(metric, row.residual)}.`)
   const orders = snapshot.data.orders.current ?? 0
   const low = history.length < 6 || orders < 30
   const consistent = endpoints.length === 2 && (verified.data.residual ?? Infinity) < 1e-7
@@ -124,8 +123,7 @@ export async function runAgent(engine: SqlEngine, month: string, options: { metr
     title = 'Marginalen är det enda som behöver din uppmärksamhet.'
     text = `Bruttomarginalen sjönk från ${fmtPct(verified.data.before)} till ${fmtPct(verified.data.after)}, alltså ${fmtPct(verified.data.drop).replace(/\s*%/, '')} procentenheter.${changeStart ? ` Förändringen började i ${fmtMonth(changeStart)}.` : ''} Ungefär ${fmtPct(verified.data.share, 0)} av nedgången kommer från ${contributors.map(row => row.label).join(' och ')}.`
     const costsUp = economics.data.every(row => (row.data.costChangePct ?? 0) > 0)
-    const flatPrices = economics.data.every(row => row.data.priceChangePct != null && Math.abs(row.data.priceChangePct) < 1)
-    text += ` ${costsUp ? 'Där har inköpskostnaden per styck ökat' : 'Förändring i styckkostnad'} (${economics.data.map(row => `${row.product} ${fmtPct(row.data.costChangePct, 0)}`).join(', ')})${flatPrices ? ' medan priset är i stort sett oförändrat.' : `. Prisförändring: ${economics.data.map(row => `${row.product} ${fmtDeltaPct(row.data.priceChangePct)}`).join(', ')}.`}`
+    text += ` ${costsUp ? 'Där har inköpskostnaden per styck ökat' : 'Förändring i styckkostnad'} (${economics.data.map(row => `${row.product} ${fmtPct(row.data.costChangePct, 0)}`).join(', ')})${priceClause(economics.data.map(row => ({ product: row.product, priceChangePct: row.data.priceChangePct })))}`
   }
   if (!low && consistent && metric !== 'margin') {
     text += ` Månadsgenomsnittet ändrades från ${format(metric, verified.data.before)} till ${format(metric, verified.data.after)}. Störst produktbidrag: ${contributors.map(row => `${row.label} (${format(metric, row.value)})`).join(' och ')}. Styckkostnad och pris har kontrollerats för dessa produkter; se verktygsresultaten.`

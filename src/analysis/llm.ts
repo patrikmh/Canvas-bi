@@ -9,10 +9,12 @@ export const defaultSettings: LlmSettings = { provider: 'OpenAI', model: '', key
 export function readSettings(): LlmSettings {
   try { return { ...defaultSettings, ...JSON.parse(localStorage.getItem(LLM_STORAGE_KEY) ?? '{}') } } catch { return defaultSettings }
 }
-export async function chooseIntent(text: string, settings: LlmSettings, context?: Metric, fetcher: typeof fetch = fetch): Promise<{ intent: Intent; fallback: boolean; wording?: string }> {
+export async function chooseIntent(text: string, settings: LlmSettings, context?: Metric, fetcher: typeof fetch = fetch): Promise<{ intent: Intent; fallback: boolean; fallbackReason?: 'error' | 'timeout' | 'not-understood'; wording?: string }> {
   const offline = matchIntent(text, context)
   if (!settings.enabled || !settings.key) return { intent: offline, fallback: false }
   const controller = new AbortController()
+  let timedOut = false
+  let notUnderstood = false
   let timer: ReturnType<typeof setTimeout> | undefined
   try {
     const description = 'Choose one supported action by returning a Swedish or English request: explore margin; explain margin change; compare revenue; margin/revenue by product; watch margin; build dashboard; add/remove table, trend, bars, waterfall, insight, text, kpi; margin in month; formula. Never compute numbers. No arbitrary SQL.'
@@ -26,15 +28,15 @@ export async function chooseIntent(text: string, settings: LlmSettings, context?
       if (!response.ok) throw new Error('Provider error')
       const data = await response.json()
       const tool = anthropic ? data.content?.find((item: { type: string }) => item.type === 'tool_use') : data.choices?.[0]?.message?.tool_calls?.[0]?.function
-      if (tool?.name && tool.name !== 'assistant_action') throw new Error('Unsupported tool')
+      if (tool?.name && tool.name !== 'assistant_action') { notUnderstood = true; throw new Error('Unsupported tool') }
       const args = anthropic ? tool?.input : JSON.parse(tool?.arguments ?? '{}')
-      if (typeof args.request !== 'string' || args.request.length > 500) throw new Error('Invalid tool')
+      if (typeof args.request !== 'string' || args.request.length > 500) { notUnderstood = true; throw new Error('Invalid tool') }
       const intent = matchIntent(args.request, context)
-      if (intent.kind === 'unknown') throw new Error('Unsupported tool')
+      if (intent.kind === 'unknown') { notUnderstood = true; throw new Error('Unsupported tool') }
       // Render the deterministic tool response; provider prose can never introduce invented figures.
       const wording = wordingOptions.find(option => option === args.wording)
       return { intent, fallback: false, wording }
     }
-    return await Promise.race([operation(), new Promise<never>((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('Timeout')) }, 8000) })])
-  } catch { return { intent: offline, fallback: true } } finally { if (timer) clearTimeout(timer) }
+    return await Promise.race([operation(), new Promise<never>((_, reject) => { timer = setTimeout(() => { timedOut = true; controller.abort(); reject(new Error('Timeout')) }, 8000) })])
+  } catch { return { intent: offline, fallback: true, fallbackReason: timedOut ? 'timeout' : notUnderstood ? 'not-understood' : 'error' } } finally { if (timer) clearTimeout(timer) }
 }

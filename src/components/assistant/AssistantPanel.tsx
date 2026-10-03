@@ -6,8 +6,8 @@ import type { AgentResult, TraceStep } from '../../analysis/agent'
 import type { Activity } from '../../analysis/activity'
 import { timestamp } from '../../analysis/activity'
 import { chooseIntent, readSettings } from '../../analysis/llm'
-import { kpiSnapshot } from '../../data/metrics'
-import { fmtDeltaPct, fmtMonth, fmtPct, fmtPp, fmtTkr } from '../../data/format'
+import { comparisonAnswer, monthAnswer } from '../../analysis/answers'
+import { fmtDeltaPct, fmtMonth, fmtPct, fmtPp } from '../../data/format'
 import type { CardKind, Metric } from '../../canvas/layout'
 import { metricInfo } from '../charts/options'
 import { watchTriggers } from '../../analysis/watch'
@@ -19,7 +19,7 @@ import './assistant.css'
 export interface AssistantMessage { id: string; role: 'assistant' | 'user'; content: ReactNode }
 export interface AssistantChip { id: string; label: string }
 interface Props {
-  chips: AssistantChip[]; engine: SqlEngine | null; dashboard: Dashboard | null; steps: TraceStep[]; result: AgentResult | null
+  analyzing: boolean; chips: AssistantChip[]; engine: SqlEngine | null; dashboard: Dashboard | null; steps: TraceStep[]; result: AgentResult | null
   activities: Activity[]; log: (action: string, detail?: string) => void
   selected?: { title: string; metric: Metric }; onClearSelection: () => void
   onAnalyze: (metric?: Metric) => Promise<AgentResult | undefined>; onExplain: () => void
@@ -72,14 +72,14 @@ export function AssistantPanel(props: Props) {
     }
   }
   async function send(text: string, freeText = false) {
-    if (!engine || !dashboard || sending) return
+    if (!engine || !dashboard || sending || props.analyzing) return
     setSending(true); setTab('Assistent'); say(text, 'user'); log('Assistentfråga', text)
     try {
       const chosen = await chooseIntent(text, freeText ? settings : { ...settings, enabled: false }, selected?.metric)
       const intent = chosen.intent
       log('Verktyg: assistant_action', JSON.stringify(intent))
       if (chosen.wording) say(<p>{chosen.wording}</p>)
-      if (chosen.fallback) say(<small className="muted">LLM kunde inte nås. Svaret kommer från offline-assistenten.</small>)
+      if (chosen.fallback) say(<small className="muted">{chosen.fallbackReason === 'not-understood' ? 'LLM förstod inte frågan. Svaret kommer från offline-assistenten.' : chosen.fallbackReason === 'timeout' ? 'LLM svarade inte i tid. Svaret kommer från offline-assistenten.' : 'LLM kunde inte nås. Svaret kommer från offline-assistenten.'}</small>)
       switch (intent.kind) {
         case 'explain': {
           if (intent.metric && intent.metric !== 'margin') {
@@ -92,8 +92,11 @@ export function AssistantPanel(props: Props) {
           if (analysis) say(<><p>{analysis.text}</p><span className={`confidence ${analysis.confidence.startsWith('Låg') ? 'low' : ''}`}>{analysis.confidence}</span><br /><button className="primary" onClick={props.onExplain}>Visa förklaringen</button></>)
           break
         }
-        case 'margin': props.onDrill('margin'); say(`Bruttomarginalen för ${fmtMonth(dashboard.month)} är ${fmtPct(dashboard.snapshot.data.margin.current)}. ${fmtPp(dashboard.snapshot.data.margin.deltaYoY)} mot i fjol.`); break
-        case 'revenue': props.onDrill('revenue'); say(`Omsättningen för ${fmtMonth(dashboard.month)} blev ${fmtTkr(dashboard.snapshot.data.revenue.current)}, ${fmtDeltaPct(dashboard.snapshot.data.revenue.deltaYoY)} mot samma månad i fjol (${fmtTkr(dashboard.snapshot.data.revenue.lastYear)}).`); break
+        case 'margin':
+        case 'revenue': {
+          const metric = intent.metric ?? (intent.kind === 'margin' ? 'margin' : 'revenue')
+          props.onDrill(metric); say(comparisonAnswer(metric, dashboard.month, dashboard.snapshot.data)); break
+        }
         case 'marginProducts': {
           props.onDrill('margin', true)
           const rows = dashboard.marginProducts.data.filter(row => row.outlier).sort((a, b) => (a.marginDeltaPp ?? 0) - (b.marginDeltaPp ?? 0))
@@ -106,10 +109,10 @@ export function AssistantPanel(props: Props) {
         case 'add': if (intent.card) { props.onAdd(intent.card, intent.metric); say('Kortet har lagts på ytan.') } break
         case 'remove': say(props.onRemove(intent.card) ? 'Kortet har tagits bort från ytan.' : 'Markera kortet du vill ta bort, eller ange korttypen.'); break
         case 'monthMargin': {
-          const month = `${dashboard.month.slice(0, 4)}-${String(intent.month).padStart(2, '0')}`
-          const result = await kpiSnapshot(engine, month)
-          log('Verktyg: kpiSnapshot', `${month} · ${fmtPct(result.data.margin.current)}`)
-          say(result.data.margin.current == null ? `Marginalen för ${fmtMonth(month)} saknar underlag.` : `Bruttomarginalen för ${fmtMonth(month)} är ${fmtPct(result.data.margin.current)}.`); break
+          const metric = intent.metric ?? 'margin'
+          const answer = await monthAnswer(engine, intent.month!, metric)
+          log('Verktyg: monthlySeries / kpiSnapshot', `${answer.month ?? 'saknas'} · ${metric}`)
+          say(answer.text); break
         }
         case 'formula': props.onHow(intent.metric ?? selected?.metric ?? 'revenue'); say(`Beräkningen för ${metricInfo[intent.metric ?? 'revenue'].label.toLowerCase()} visas med formel och SQL.`); break
         default: say('Jag kan utforska marginalen, förklara förändringar, jämföra omsättning med förra året, visa produkter, lägga till eller ta bort kort, visa beräkningar, bygga en ledningsvy och föreslå bevakningar. Prova ”vad är marginalen i juli”.')
@@ -132,11 +135,11 @@ export function AssistantPanel(props: Props) {
         <div ref={bottom} />
       </div>
       {tab === 'Assistent' && <>
-        <div className="assistant-chips">{chips.map(chip => <button className="chip" disabled={sending || !dashboard} key={chip.id} onClick={() => void send(chip.label)}>{chip.label}</button>)}</div>
+        <div className="assistant-chips">{chips.map(chip => <button className="chip" disabled={sending || props.analyzing || !dashboard} key={chip.id} onClick={() => void send(chip.label)}>{chip.label}</button>)}</div>
         {selected && <p className="selected-context" data-testid="selected-context">Markerat: <strong>{selected.title}</strong><button aria-label="Avmarkera kort" onClick={props.onClearSelection}>×</button></p>}
         <form className="assistant-input" onSubmit={event => { event.preventDefault(); if (input.trim()) { void send(input.trim(), true); setInput('') } }}>
           <input aria-label="Fråga eller be mig ändra något" placeholder={selected ? 'Fråga om det markerade kortet' : 'Fråga eller be mig ändra något'} value={input} onChange={event => setInput(event.target.value)} />
-          <button className="primary" disabled={sending || !dashboard} type="submit">{sending ? 'Arbetar…' : 'Skicka'}</button>
+          <button className="primary" disabled={sending || props.analyzing || !dashboard} type="submit">{sending ? 'Arbetar…' : 'Skicka'}</button>
         </form>
       </>}
     </aside>

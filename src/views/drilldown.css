@@ -1,0 +1,2 @@
+.detail-view.detail-exiting { animation: detail-exit 200ms ease both; pointer-events: none; }
+@keyframes detail-exit { to { opacity: 0; transform: translateY(8px); } }

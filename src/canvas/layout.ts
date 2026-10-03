@@ -83,3 +83,13 @@ export function layoutReducer(state: CanvasState, action: Action): CanvasState {
   if (JSON.stringify(present) === JSON.stringify(state.present)) return state
   return { present, past: [...state.past.slice(-49), state.present] }
 }
+
+export function toolbarLayout(layout: Layout, id: string, action: 'left' | 'right' | 'width'): Layout {
+  const changed = layout.map(item => {
+    if (item.i !== id) return { ...item }
+    const w = action === 'width' ? item.w < 6 ? 6 : item.w < 12 ? 12 : 3 : item.w
+    return { ...item, w, minW: action === 'width' ? Math.min(item.minW ?? 3, 3) : item.minW,
+      x: Math.max(0, Math.min(12 - w, item.x + (action === 'left' ? -1 : action === 'right' ? 1 : 0))) }
+  })
+  return verticalCompactor.compact(changed, 12)
+}
