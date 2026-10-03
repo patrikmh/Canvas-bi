@@ -5,7 +5,7 @@ import type { ComponentProps } from 'react'
 import type { AgentResult } from '../../analysis/agent'
 import type { AssistantPanel } from '../assistant/AssistantPanel'
 import type { UploadDraft } from './MappingDialog'
-const mocks = vi.hoisted(() => ({ run: vi.fn(), load: vi.fn(), close: vi.fn(), log: vi.fn(), upload: vi.fn() }))
+const mocks = vi.hoisted(() => ({ run: vi.fn(), load: vi.fn(), close: vi.fn(), log: vi.fn(), upload: vi.fn(), analysisCompleted: vi.fn() }))
 vi.mock('../../data/engine.browser', () => ({ createBrowserEngine: async () => ({ loadOrderLines: async () => {}, close: mocks.close }) }))
 vi.mock('../../data/metrics', async importOriginal => ({ ...await importOriginal<typeof import('../../data/metrics')>(), latestCompleteMonth: async () => ({ data: '2026-07' }) }))
 vi.mock('../../data/engine.upload', async importOriginal => ({ ...await importOriginal<typeof import('../../data/engine.upload')>(), loadMappedUpload: mocks.upload, partialUploadMonths: async () => [] }))
@@ -14,7 +14,7 @@ vi.mock('../../analysis/agent', () => ({ runAgent: mocks.run }))
 vi.mock('../../analysis/activity', () => ({ useActivity: () => ({ activities: [], log: mocks.log }) }))
 vi.mock('../../canvas/Canvas', () => ({ Canvas: ({ dashboard }: { dashboard: { analysis?: AgentResult } }) => <div data-testid="dashboard">{dashboard.analysis?.text ?? 'Dashboard kvar'}</div> }))
 vi.mock('../assistant/AssistantPanel', () => ({ AssistantPanel: ({ onAnalyze, steps }: ComponentProps<typeof AssistantPanel>) => <>
-  <button onClick={() => void onAnalyze().catch(() => {})}>Starta analys</button>
+  <button onClick={() => void onAnalyze().then(mocks.analysisCompleted)}>Starta analys</button>
   {steps.map((step, index) => <span key={index} data-testid={`status-${index}`}>{step.status}</span>)}
 </> }))
 vi.mock('./UploadDialog', () => ({ UploadDialog: ({ onParsed }: { onParsed: (draft: UploadDraft) => void }) => <button onClick={() => onParsed({ name: 'fresh.csv', parsed: { headers: [], rows: [] }, mapping: {} })}>Välj fil</button> }))
@@ -39,6 +39,8 @@ test('user-started analysis failure logs Analys misslyckades and preserves the l
   await waitFor(() => expect(screen.getByTestId('app-root').getAttribute('data-ready')).toBe('true'), { timeout: 10_000 })
   fireEvent.click(screen.getByRole('button', { name: 'Starta analys' }))
   await waitFor(() => expect(mocks.log).toHaveBeenCalledWith('Analys misslyckades', 'Error: SQL failed'))
+  // No catch is attached in the caller: a rejection would be unhandled and fail Vitest.
+  await waitFor(() => expect(mocks.analysisCompleted).toHaveBeenCalledWith(undefined))
   expect(screen.getByTestId('dashboard').textContent).toBe('Tidigare analys')
   expect(screen.getByTestId('status-0').textContent).toBe('failed')
   expect(screen.queryByText('Data kunde inte läsas')).toBeNull()

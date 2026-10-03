@@ -4,7 +4,7 @@ En statisk svensk försäljningsdemo för Tlön: en ledningsöversikt på en fly
 
 ## Kör och verifiera
 
-Projektet använder Node.js och npm. Använd Node 22.12 eller senare.
+Projektet använder Node.js >=20.19 och npm. `.nvmrc` väljer Node 22.
 
 ```sh
 npm ci

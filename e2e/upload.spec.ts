@@ -162,3 +162,16 @@ test('missing identifiers and product give explanatory cards; trailing empty hea
   await expect(page.getByTestId('app-root')).toHaveAttribute('data-ready', 'true')
   await expect(page.getByTestId('dataset-name')).toHaveText('totals.csv')
 })
+
+test('blank mapped optional cells keep all revenue while partial cost stops the margin analysis', async ({ page }) => {
+  await boot(page)
+  await page.getByTestId('upload-entry').click()
+  await page.getByTestId('upload-file').setInputFiles({ name: 'partial-cost.csv', mimeType: 'text/csv', buffer: Buffer.from('date,amount,cost,qty,channel,region,customer,order\n2026-08-28,1000,600,2,Webb,SE,C1,O1\n2026-08-29,2000,,,,,,\n') })
+  await confirm(page)
+  await expect(page.getByTestId('kpi-revenue').locator('.kpi-value')).toHaveText(/3\s+tkr/)
+  await expect(page.getByTestId('trace-step-0')).toHaveAttribute('data-status', 'failed')
+  await expect(page.getByTestId('trace-step-0')).toContainText('Kontrollerar att kostnad finns')
+  await expect(page.getByTestId('card-insight')).toContainText('Kostnad saknas')
+  await expect(page.getByTestId('card-kpi-margin')).not.toContainText(/\d[,.]?\d*\s*%/)
+  await expect(page.getByTestId('card-insight').getByRole('button', { name: 'Bevaka marginalen', exact: true })).toHaveCount(0)
+})

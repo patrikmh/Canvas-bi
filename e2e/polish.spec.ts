@@ -21,6 +21,10 @@ test('startup chips cannot overlap the coherent five-step trace; changing month 
 test('selection preserves chart SVG, insight exposes SQL, width cycles and rebuilt cards stagger', async ({ page }) => {
   await page.goto('/?fast=1')
   await expect(page.getByTestId('app-root')).toHaveAttribute('data-ready', 'true')
+  const startupDelays = await page.locator('[data-card-id]').evaluateAll(cards => cards.map(card => parseFloat(card.ownerDocument.defaultView!.getComputedStyle(card).animationDelay)))
+  expect(startupDelays[0]).toBe(0)
+  expect(startupDelays[1]).toBeGreaterThan(startupDelays[0])
+  expect(startupDelays.at(-1)).toBeGreaterThan(startupDelays[1])
   const svg = await page.getByTestId('kpi-revenue').locator('svg').elementHandle()
   await page.getByTestId('card-kpi-orders').focus()
   expect(await svg!.evaluate(node => node === node.ownerDocument.querySelector('[data-testid="kpi-revenue"] svg'))).toBe(true)

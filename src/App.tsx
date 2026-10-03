@@ -53,7 +53,7 @@ export default function App() {
   const [state, dispatch] = useReducer(layoutReducer, undefined, () => {
     try { return initialState(readDocument(localStorage.getItem(STORAGE_KEY))) } catch { return initialState() }
   })
-  const [staggerRebuild, setStaggerRebuild] = useState(false)
+  const [staggerRebuild, setStaggerRebuild] = useState(true)
   const [canvasRevision, setCanvasRevision] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [view, setView] = useState<DetailView | null>(null)
@@ -97,7 +97,7 @@ export default function App() {
       }
     } catch (cause) {
       if (current()) log('Analys misslyckades', String(cause))
-      throw cause
+      return undefined
     }
   }
 

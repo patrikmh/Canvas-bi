@@ -15,15 +15,17 @@ export async function loadMappedUpload(engine: SqlEngine, parsed: ParsedData, ma
   const numeric = new Set<CanonicalField>(['qty', 'unit_price', 'unit_cost', 'revenue', 'cost'])
   const indexes = fields.map(field => parsed.headers.indexOf(columns[field]!))
   if (indexes.some(index => index < 0)) throw new Error('En mappad kolumn saknas i filen.')
+  const required = new Set<CanonicalField>(['date'])
+  if (columns.revenue) required.add('revenue')
+  else { required.add('unit_price'); if (columns.qty) required.add('qty') }
   let skippedRows = 0
   const normalized = parsed.rows.flatMap(row => {
     const values = fields.map((field, i) => {
-      if (indexes[i] >= row.length) return null
-      const value = row[indexes[i]].trim()
-      return field === 'date' ? parseDate(value) : numeric.has(field) ? parseNumber(value) : value
+      const value = row[indexes[i]]?.trim() ?? ''
+      return field === 'date' ? parseDate(value) : numeric.has(field) ? parseNumber(value) : value || null
     })
-    if (values.some(value => value === null)) { skippedRows++; return [] }
-    return [values as (string | number)[]]
+    if (fields.some((field, index) => required.has(field) && values[index] === null)) { skippedRows++; return [] }
+    return [values]
   })
   if (!normalized.length) throw new Error('Filen innehåller inga giltiga försäljningsrader. Tidigare data behålls.')
   const assumption = !validation.hasCost && assumedMarginPct !== undefined ? { kind: 'margin' as const, pct: assumedMarginPct } : undefined
@@ -33,7 +35,7 @@ export async function loadMappedUpload(engine: SqlEngine, parsed: ParsedData, ma
   const cost = columns.cost ? `CAST(${cell('cost')} AS DOUBLE)` : columns.unit_cost ? `${qty} * CAST(${cell('unit_cost')} AS DOUBLE)` : assumption ? `(${revenue}) * (1 - ${assumption.pct} / 100.0)` : 'NULL::DOUBLE'
   const text = (field: CanonicalField) => `NULLIF(CAST(${cell(field, "''")} AS VARCHAR), '')`
   const raw = `upload_${crypto.randomUUID().replaceAll('-', '')}`
-  const csvCell = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`
+  const csvCell = (value: string | number | null) => value === null ? '' : `"${String(value).replaceAll('"', '""')}"`
   const csv = [fields, ...normalized].map(row => row.map(csvCell).join(',')).join('\n') + '\n'
   await engine.query('BEGIN TRANSACTION')
   try {
@@ -42,7 +44,7 @@ export async function loadMappedUpload(engine: SqlEngine, parsed: ParsedData, ma
       CAST(${cell('date')} AS DATE) AS date, ${text('order_id')} AS order_id, ${text('customer_id')} AS customer_id,
       COALESCE(${text('product')}, 'Produkt saknas') AS product, ${qty} AS qty,
       CASE WHEN ${qty} = 0 THEN CAST(${cell('unit_price', '0')} AS DOUBLE) ELSE (${revenue}) / ${qty} END AS unit_price,
-      CASE WHEN ${qty} = 0 THEN CAST(${cell('unit_cost')} AS DOUBLE) ELSE (${cost}) / ${qty} END AS unit_cost,
+      CASE WHEN ${qty} = 0 THEN CAST(${cell('unit_cost', '0')} AS DOUBLE) ELSE (${cost}) / ${qty} END AS unit_cost,
       ${text('channel')} AS channel, ${text('region')} AS region, ${revenue} AS revenue, ${cost} AS cost
       FROM ${identifier(raw)}`)
     await engine.query(`DROP TABLE ${identifier(raw)}`)
