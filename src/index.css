@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root { font-family: Arial, sans-serif; color: #26332f; background: #e9efec; }
+body { margin: 0; }
+.dashboard { min-height: 100vh; background: #e9efec; }
+.demo-banner { padding: 12px 24px; background: #dce8e2; color: #3f5c50; text-align: center; font-size: 12px; letter-spacing: .09em; }
+.brand { display: flex; align-items: center; gap: 20px; padding: 24px 40px; border-bottom: 1px solid #ccd9d2; }
+.brand span:first-child { font: 24px Georgia, serif; }
+.brand span:last-child { color: #6c7c75; font-size: 14px; }
+main { max-width: 1120px; margin: 0 auto; padding: 52px 32px; }
+.dashboard-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #6c7c75; margin: 0 0 12px; }
+h1 { font: 36px Georgia, serif; margin: 0; }
+.period { padding: 10px 16px; border: 1px solid #ccd9d2; border-radius: 6px; font-size: 14px; color: #5c7066; }
+.intro { margin: 20px 0 32px; color: #64786e; line-height: 1.6; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.kpi-card { padding: 26px 24px; background: white; border: 1px solid #d6e1db; border-radius: 10px; }
+.kpi-card h2 { margin: 0 0 24px; font: 18px Georgia, serif; }
+.kpi-value { margin: 0 0 16px; font-size: 36px; font-weight: 600; white-space: nowrap; letter-spacing: -.02em; }
+.kpi-delta { margin: 0; font-size: 14px; line-height: 1.7; }
+.kpi-delta span { display: block; }
+.positive { color: #348161; }
+.negative { color: #b13948; }
+.calculation { margin-top: 24px; color: #50665c; font-size: 14px; line-height: 1.7; }
+.calculation summary { cursor: pointer; }
+.calculation pre { overflow: auto; padding: 16px; background: #fff; border-radius: 8px; font-size: 12px; }
+.data-note { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 48px; padding-top: 20px; border-top: 1px solid #ccd9d2; color: #6c7c75; font-size: 12px; }
+@media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) {
+  .brand { padding: 20px; }
+  main { padding: 32px 20px; }
+  .dashboard-heading { display: block; }
+  .period { display: inline-block; }
+  h1 { font-size: 30px; }
+  .kpi-grid { grid-template-columns: 1fr; }
+}
