@@ -72,7 +72,7 @@ export function CardContent({ card, dashboard, engine, onDrill, onHow, onExplain
   const how = <HowButton id={card.id} onClick={() => onHow(calculationFor(card, dashboard))} />
   if (card.kind === 'insight') return <div className="insight-content">
     <h2>{dashboard.analysis?.title ?? (dashboard.changeStart && (dashboard.story.data.drop ?? 0) > 0 ? 'Marginalen är det enda som behöver din uppmärksamhet.' : 'Din ledningsöversikt, samlad på en yta.')}</h2>
-    <p>{insightText(dashboard)}</p><div className="insight-actions"><button className="primary" onClick={onExplain}>Visa varför</button><button onClick={onWatch}>Bevaka marginalen</button>{how}</div>
+    <p>{insightText(dashboard)}</p><div className="insight-actions"><button className="primary" onClick={onExplain}>Visa varför</button>{dashboard.snapshot.data.margin.current != null && <button onClick={onWatch}>Bevaka marginalen</button>}{how}</div>
   </div>
   if (card.kind === 'kpi') {
     const kpi = dashboard.snapshot.data[metric]

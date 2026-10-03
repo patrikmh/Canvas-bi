@@ -47,7 +47,7 @@ export function parseNumber(input: string): number | null {
 export function parseDate(input: string): string | null {
   const text = input.trim()
   let year: number, month: number, day: number
-  const iso = /^(\d{4})-(\d{2})-(\d{2})(?:T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d{1,9})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)?)?$/.exec(text)
+  const iso = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d{1,9})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)?)?$/.exec(text)
   const compact = /^(\d{4})(\d{2})(\d{2})$/.exec(text)
   const dayFirst = /^(\d{1,2})([/.])(\d{1,2})\2(\d{4})$/.exec(text)
   if (iso || compact) [, year, month, day] = (iso ?? compact)!.slice(0, 4).map(Number)
@@ -68,6 +68,22 @@ export function detectMapping(headers: string[], sampleRows: string[][] = []): D
     const column = matches.length === 1 ? matches[0] : null
     result[field] = { column, confidence: column ? .98 : 0, reason: column ? 'Kolumnnamnet matchar ett känt fält.' : matches.length > 1 ? 'Flera kolumner matchar; välj kolumn manuellt.' : 'Ingen säker matchning hittades.' }
     if (column) used.add(column)
+  }
+  // Longer synonyms win: "unit_cost" must not become "cost", nor "orderdatum" become "order".
+  const contained = new Map<CanonicalField, string[]>()
+  for (const header of headers.filter(header => !used.has(header))) {
+    const matches = (Object.keys(synonyms) as CanonicalField[]).flatMap(field =>
+      synonyms[field].filter(word => normalize(header).includes(normalize(word)))
+        .map(word => ({ field, length: normalize(word).length })))
+    const longest = Math.max(0, ...matches.map(match => match.length))
+    const winners = [...new Set(matches.filter(match => match.length === longest).map(match => match.field))]
+    if (winners.length === 1) contained.set(winners[0], [...(contained.get(winners[0]) ?? []), header])
+  }
+  for (const [field, candidates] of contained) {
+    if (!result[field].column && candidates.length === 1) {
+      result[field] = { column: candidates[0], confidence: .8, reason: 'Kolumnnamnet innehåller ett känt fält; kontrollera förslaget.' }
+      used.add(candidates[0])
+    }
   }
   function sniff(field: 'date' | 'revenue', parser: (value: string) => unknown) {
     if (result[field].column) return

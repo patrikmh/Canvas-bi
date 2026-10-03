@@ -11,5 +11,8 @@
   "09-approval",
   "10-watch-active",
   "11-activity-log",
-  "12-settings-llm"
+  "12-settings-llm",
+  "13-upload-mapping",
+  "14-failure-path",
+  "15-low-confidence"
 ]

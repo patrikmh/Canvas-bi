@@ -45,6 +45,7 @@ test.each([
 
 test.each([
   ['2026-08-01', '2026-08-01'], ['2026-08-01T10:00', '2026-08-01'], ['01/08/2026', '2026-08-01'],
+  ['2026-08-01 10:00:00', '2026-08-01'],
   ['1.8.2026', '2026-08-01'], ['20260801', '2026-08-01'], ['29/02/2024', '2024-02-29'],
   ['2026-02-29', null], ['31/04/2026', null], ['20261301', null], ['', null], ['01/13/2026', null],
   ['2026-08-01garbage', null], ['2026-08-01T99:99', null],
@@ -59,4 +60,15 @@ test('validateMapping detects missing requirements, optional cost and duplicate 
   expect(validateMapping({ date: 'date', qty: 'qty' })).toMatchObject({ ok: false, missing: ['revenue'] })
   expect(validateMapping({})).toMatchObject({ ok: false, missing: ['date', 'revenue'] })
   expect(validateMapping({ date: 'same', revenue: 'same' }).ok).toBe(false)
+})
+
+test('contains-synonym headers give lower confidence without reusing unit price as revenue', () => {
+  const result = detectMapping(['Orderdatum export', 'Artikel namn', 'Antal sålda', 'Styckpris SEK', 'Inköpspris SEK'], [['2026-08-01', 'A', '2', '100', '50']])
+  expect(result.date.column).toBe('Orderdatum export')
+  expect(result.product.column).toBe('Artikel namn')
+  expect(result.qty.column).toBe('Antal sålda')
+  expect(result.unit_price.column).toBe('Styckpris SEK')
+  expect(result.unit_cost.column).toBe('Inköpspris SEK')
+  expect(result.revenue.column).toBeNull()
+  expect(result.date.confidence).toBeLessThan(.9)
 })

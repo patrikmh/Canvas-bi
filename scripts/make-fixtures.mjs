@@ -49,12 +49,21 @@ writeFileSync(`${directory}expected.json`, JSON.stringify(expectations, null, 2)
 
 // Minimal deterministic OOXML workbook and uncompressed ZIP: no extra dependencies.
 const xml = text => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
-const sheetRows = [shopHeaders, ...shopRows].map((row, r) => `<row r="${r + 1}">${row.map((cell, c) => `<c r="${String.fromCharCode(65 + c)}${r + 1}" t="inlineStr"><is><t>${xml(cell)}</t></is></c>`).join('')}</row>`).join('')
+function sheetRowsFor(nativeMoney = false) {
+  return [shopHeaders, ...shopRows].map((row, r) => `<row r="${r + 1}">${row.map((cell, c) => {
+    const reference = `${String.fromCharCode(65 + c)}${r + 1}`
+    if (r > 0 && c === 0) return `<c r="${reference}" s="1"><v>${(Date.parse(cell) - Date.UTC(1899, 11, 30)) / 86_400_000}</v></c>`
+    if (r > 0 && (c === 2 || (nativeMoney && (c === 3 || c === 4)))) return `<c r="${reference}"><v>${Number(cell.replace(',', '.'))}</v></c>`
+    return `<c r="${reference}" t="inlineStr"><is><t>${xml(cell)}</t></is></c>`
+  }).join('')}</row>`).join('')
+}
+const sheetRows = sheetRowsFor()
 const files = {
-  '[Content_Types].xml': '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+  '[Content_Types].xml': '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
   '_rels/.rels': '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
   'xl/workbook.xml': '<?xml version="1.0"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Försäljning" sheetId="1" r:id="rId1"/></sheets></workbook>',
-  'xl/_rels/workbook.xml.rels': '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+  'xl/_rels/workbook.xml.rels': '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+  'xl/styles.xml': '<?xml version="1.0"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="1"><font/></fonts><fills count="1"><fill/></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0"/><xf numFmtId="14" applyNumberFormat="1"/></cellXfs></styleSheet>',
   'xl/worksheets/sheet1.xml': `<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`,
 }
 function crc32(bytes) {
@@ -65,6 +74,7 @@ function crc32(bytes) {
   }
   return (crc ^ 0xffffffff) >>> 0
 }
+function workbookZip(files) {
 const locals = [], central = []
 let offset = 0
 for (const [path, content] of Object.entries(files)) {
@@ -82,5 +92,8 @@ for (const [path, content] of Object.entries(files)) {
 const directoryBytes = Buffer.concat(central), end = Buffer.alloc(22)
 end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(Object.keys(files).length, 8); end.writeUInt16LE(Object.keys(files).length, 10)
 end.writeUInt32LE(directoryBytes.length, 12); end.writeUInt32LE(offset, 16)
-writeFileSync(`${directory}annan-butik.xlsx`, Buffer.concat([...locals, directoryBytes, end]))
-console.log('Generated four deterministic upload fixtures and expected.json')
+return Buffer.concat([...locals, directoryBytes, end])
+}
+writeFileSync(`${directory}annan-butik.xlsx`, workbookZip(files))
+writeFileSync(`${directory}native-numbers.xlsx`, workbookZip({ ...files, 'xl/worksheets/sheet1.xml': `<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRowsFor(true)}</sheetData></worksheet>` }))
+console.log('Generated five deterministic upload fixtures (including native Excel cells) and expected.json')

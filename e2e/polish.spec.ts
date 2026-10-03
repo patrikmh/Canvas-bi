@@ -38,6 +38,12 @@ test('selection preserves chart SVG, insight exposes SQL, width cycles and rebui
   expect(delays[0]).toBe(0)
   expect(delays[1]).toBeGreaterThan(delays[0])
   expect(delays.at(-1)).toBeGreaterThan(delays[1])
+  const animations = await page.locator('[data-card-id]').evaluateAll(cards => cards.map(card => card.ownerDocument.defaultView!.getComputedStyle(card).animationName))
+  expect(animations.every(name => name !== 'none')).toBe(true)
+  await page.getByTestId('palette-text').click()
+  const added = page.locator('.kind-text')
+  expect(await added.evaluate(card => card.ownerDocument.defaultView!.getComputedStyle(card).animationName)).not.toBe('none')
+  expect(await added.evaluate(card => card.ownerDocument.defaultView!.getComputedStyle(card).animationDelay)).toBe('0s')
 })
 
 test('selected metric comparisons and latest available month work through the assistant', async ({ page }) => {

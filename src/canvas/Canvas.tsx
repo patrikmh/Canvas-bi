@@ -12,6 +12,7 @@ import type { Calculation } from '../components/CalculationDrawer'
 import type { SqlEngine } from '../data/engine'
 
 interface Props {
+  staggerRebuild?: boolean
   document: CanvasDocument
   dashboard: Dashboard
   engine: SqlEngine
@@ -27,6 +28,8 @@ interface Props {
   onNote: (id: string, text: string) => void
 }
 export function Canvas(props: Props) {
+  // Capture rebuild delays once. Cards added later always enter immediately.
+  const entranceDelays = useRef(new Map(props.document.cards.map((card, index) => [card.id, props.staggerRebuild ? index * 70 : 0])))
   const container = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(800)
   const [mobile, setMobile] = useState(window.innerWidth < 900)
@@ -36,8 +39,8 @@ export function Canvas(props: Props) {
     return () => observer.disconnect()
   }, [])
   const shift = (card: CanvasCard, amount: number) => props.onLayout(toolbarLayout(props.document.layout, card.id, amount < 0 ? 'left' : 'right'))
-  const cards = props.document.cards.map((card, index) => <div key={card.id} className={`canvas-card kind-${card.kind} ${props.selected === card.id ? 'selected' : ''}`}
-    style={{ animationDelay: `${index * 70}ms` }} data-testid={`card-${card.id}`}  data-card-id={card.id} tabIndex={0} onFocus={event => { if (event.target === event.currentTarget) props.onSelect(card.id) }} onClick={event => { if (!(event.target as HTMLElement).closest('button,input,textarea')) props.onSelect(card.id) }}
+  const cards = props.document.cards.map(card => <div key={card.id} className={`canvas-card kind-${card.kind} ${props.selected === card.id ? 'selected' : ''}`}
+    style={{ animationDelay: `${entranceDelays.current.get(card.id) ?? 0}ms` }} data-testid={`card-${card.id}`}  data-card-id={card.id} tabIndex={0} onFocus={event => { if (event.target === event.currentTarget) props.onSelect(card.id) }} onClick={event => { if (!(event.target as HTMLElement).closest('button,input,textarea')) props.onSelect(card.id) }}
     onDoubleClick={event => { if (!(event.target as HTMLElement).closest('button,input,textarea')) props.onDrill(card.metric ?? (card.kind === 'waterfall' ? 'margin' : 'revenue'), card.kind === 'bars' || card.kind === 'table') }}>
     <div className="card-toolbar" aria-label={`Verktyg för ${cardTitle(card)}`}>
       <button aria-label={`Flytta ${cardTitle(card)} åt vänster`} onClick={() => shift(card, -1)}>‹</button>

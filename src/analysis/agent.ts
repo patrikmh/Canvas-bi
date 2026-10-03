@@ -1,5 +1,6 @@
 import type { SqlEngine } from '../data/engine'
-import { kpiSnapshot, marginWaterfall, monthlySeries, unitEconomics } from '../data/metrics'
+import type { DatasetInfo } from '../data/types'
+import { findChangeStart, kpiSnapshot, marginWaterfall, monthlySeries, unitEconomics } from '../data/metrics'
 import type { KpiSnapshot, MonthlyMetrics, MetricResult, WaterfallStep } from '../data/metrics'
 import { fmtDeltaPct, fmtInt, fmtMonth, fmtPct, fmtPp, fmtTkr } from '../data/format'
 import { literal } from '../data/sql'
@@ -12,7 +13,7 @@ const labels = ['Bekräftar att marginalen har ändrats', 'Letar efter när för
 const metricColumn = { revenue: 'revenue', margin: 'gross_margin_pct', orders: 'orders', customers: 'customers' } as const
 const names = { revenue: 'Omsättning', margin: 'Bruttomarginal', orders: 'Ordrar', customers: 'Kunder' }
 const format = (metric: Metric, value: number | null) => metric === 'margin' ? fmtPct(value) : metric === 'revenue' ? fmtTkr(value) : fmtInt(value)
-export async function runAgent(engine: SqlEngine, month: string, options: { metric?: Metric; fast?: boolean; signal?: AbortSignal; onSteps?: (steps: TraceStep[]) => void } = {}): Promise<AgentResult> {
+export async function runAgent(engine: SqlEngine, month: string, options: { dataset?: DatasetInfo; metric?: Metric; fast?: boolean; signal?: AbortSignal; onSteps?: (steps: TraceStep[]) => void } = {}): Promise<AgentResult> {
   const steps: TraceStep[] = labels.map(label => ({ label, tool: '', input: {}, sql: '', summary: '', status: 'pending', duration: 0 }))
   const emit = () => options.onSteps?.(steps.map(step => ({ ...step })))
   async function call<T>(index: number, tool: string, input: unknown, action: () => Promise<MetricResult<T>>, summary: (data: T) => string) {
@@ -48,18 +49,54 @@ export async function runAgent(engine: SqlEngine, month: string, options: { metr
       FROM scan ORDER BY score DESC, metric`
     return { data: await engine.query<{ metric: Metric; yoy: number | null; recent: number | null }>(scanSql), sql: `${snapshot.sql};\n${scanSql}`, formula: '' }
   }, rows => rows.map(row => `${names[row.metric]}: år ${fmtPct(row.yoy == null ? null : row.yoy * 100)}, senaste tre månader ${fmtPct(row.recent == null ? null : row.recent * 100)}`).join(' · '))
+  const confidenceSql = `SELECT COUNT(DISTINCT strftime(date, '%Y-%m')) AS months,
+    COUNT(DISTINCT NULLIF(order_id, '')) FILTER (WHERE strftime(date, '%Y-%m') = ${literal(month)}) AS orders,
+    COUNT(*) FILTER (WHERE strftime(date, '%Y-%m') = ${literal(month)}) AS rows,
+    COUNT(cost) AS costs, COUNT(*) AS total FROM sales WHERE strftime(date, '%Y-%m') <= ${literal(month)}`
+  const support = (await engine.query<{ months: number; orders: number; rows: number; costs: number; total: number }>(confidenceSql))[0]
+  const lowSupport = support.months < 6 || (options.dataset?.source === 'upload' && !options.dataset.mapping.order_id ? support.rows : support.orders) < 30
+  const missingCost = support.costs !== support.total || support.total === 0
+  if (missingCost || options.dataset?.assumption) {
+    const assumption = options.dataset?.assumption
+    const summary = missingCost
+      ? 'Bruttomarginal kan inte beräknas utan kostnad. Mappa en kostnadskolumn eller välj ett uttryckligt marginalantagande.'
+      : `ANTAGANDE: bruttomarginalen ${fmtPct(snapshot.data.margin.current)} bygger på ditt val, inte på uppmätt kostnad. Ingen kostnadsorsak analyseras.`
+    steps.splice(0, steps.length, { label: 'Kontrollerar att kostnad finns', tool: 'costAvailability', input: { month, assumption },
+      sql: confidenceSql, summary, status: missingCost ? 'failed' : 'done', duration: 0 })
+    emit()
+    return { metric: missingCost ? 'revenue' : 'margin', title: missingCost ? 'Kostnad saknas – marginalanalysen stoppades.' : 'ANTAGANDE – marginalen är inte uppmätt.',
+      text: `${summary} Omsättning för ${fmtMonth(month)}: ${fmtTkr(snapshot.data.revenue.current)}.${lowSupport ? ' Underlaget är litet; samla mer data innan du drar slutsatser.' : ''}`,
+      confidence: lowSupport ? 'Låg säkerhet' : missingCost ? 'Marginal saknar underlag' : 'ANTAGANDE', steps }
+  }
+  if (options.dataset?.source === 'upload' && !options.dataset.mapping.product) {
+    const summary = 'Produktkolumn saknas. Mappa en produktkolumn för att förklara förändringen per produkt.'
+    steps.splice(1, steps.length - 1, { label: 'Kontrollerar produktunderlag', tool: 'mappingAvailability', input: options.dataset.mapping,
+      sql: confidenceSql, summary, status: 'failed', duration: 0 })
+    emit()
+    return { metric: 'revenue', title: 'Försäljningen är inläst; produktunderlag saknas.', text: `Omsättning för ${fmtMonth(month)}: ${fmtTkr(snapshot.data.revenue.current)}. ${summary}`,
+      confidence: lowSupport ? 'Låg säkerhet' : 'Produktförklaring saknar underlag', steps }
+  }
   const metric = options.metric ?? scan.data[0]?.metric ?? 'margin'
   steps[0].label = metric === 'margin' ? labels[0] : `Bekräftar att ${names[metric].toLowerCase()} har ändrats`
   const start = await call(1, 'findLatestChange', { metric: metricColumn[metric], through: month, rule: 'latest abrupt change, either direction' }, async function findLatestChange() {
     const column = metricColumn[metric]
-    // Bound the latest abrupt change to the selected month, in either direction.
+    if (metric !== 'margin') {
+      let sql = ''
+      const bounded = { ...engine, query: async <T,>(source: string) => {
+        sql = source.replace('ORDER BY month LIMIT 1', `AND month <= ${literal(month)} ORDER BY month DESC LIMIT 1`)
+        return engine.query<T>(sql)
+      } }
+      const result = await findChangeStart(bounded, column)
+      return { ...result, sql }
+    }
+    // Bound the latest abrupt margin change to the selected month, in either direction.
     const sql = `WITH monthly AS (${series.sql}), changes AS (
       SELECT month, ${column} AS value, LAG(${column}) OVER (ORDER BY month) AS previous FROM monthly
     ) SELECT month FROM changes WHERE month <= ${literal(month)} AND
-      ${metric === 'margin' ? 'ABS(value - previous) >= 5' : 'ABS(value / NULLIF(previous, 0) - 1) >= 0.2'}
+      ABS(value - previous) >= 5
       ORDER BY month DESC LIMIT 1`
     const rows = await engine.query<{ month: string }>(sql)
-    return { data: rows[0]?.month ?? null, sql, formula: 'Senaste absoluta månadsförändring inom vald period: minst 5 procentenheter för marginal, annars minst 20 procent.' }
+    return { data: rows[0]?.month ?? null, sql, formula: 'Senaste absoluta månadsförändring inom vald period: minst 5 procentenheter för marginal.' }
   }, value => value ? `Senaste tydliga brytpunkt: ${fmtMonth(value)}.` : 'Ingen tydlig brytpunkt hittades.')
   const changeStart = start.data && start.data <= month ? start.data : null
   // Follow the detected break, bounded to the selected period. A missing break uses the latest month.
@@ -110,8 +147,8 @@ export async function runAgent(engine: SqlEngine, month: string, options: { metr
   const verified = await call(4, 'reconcileWaterfall', { month, metric }, async function reconcileWaterfall() { return {
     data: (await engine.query<{ before: number | null; after: number | null; drop: number | null; share: number | null; residual: number | null }>(verifySql))[0], sql: verifySql, formula: breakdown.formula,
   } }, row => `Kontrollerat: ${format(metric, row.before)} → ${format(metric, row.after)}; produktbidragen summerar med avvikelse ${format(metric, row.residual)}.`)
-  const orders = snapshot.data.orders.current ?? 0
-  const low = history.length < 6 || orders < 30
+  const orders = options.dataset?.source === 'upload' && !options.dataset.mapping.order_id ? support.rows : support.orders
+  const low = lowSupport
   const consistent = endpoints.length === 2 && (verified.data.residual ?? Infinity) < 1e-7
   const confidence = low ? 'Låg säkerhet' : consistent ? 'Hög säkerhet' : 'Medel säkerhet'
   let text = `${names[metric]} för ${fmtMonth(month)} är ${format(metric, snapshot.data[metric].current)}. Förändring mot i fjol: ${metric === 'margin' ? fmtPp(snapshot.data.margin.deltaYoY) : fmtDeltaPct(snapshot.data[metric].deltaYoY)}.`

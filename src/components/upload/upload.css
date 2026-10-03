@@ -1,0 +1,47 @@
+.upload-sidebar { display: flex; flex-direction: column; min-height: 0; background: #f3f6f4; border-right: 1px solid #d6e1dc; }
+.upload-sidebar > .palette { flex: 1; min-height: 0; border-right: 0; }
+.upload-sidebar > .upload-entry { margin: 0 20px 18px; flex-shrink: 0; }
+.uploaded-data .brand p { display: none; }
+.uploaded-data .app-shell { height: 100dvh; }
+.upload-dialog { width: min(540px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); border: 1px solid #d6e1dc; border-radius: 14px; padding: 26px; color: #293832; box-shadow: 0 16px 80px #172d2530; }
+.upload-dialog::backdrop { background: #172d2555; backdrop-filter: blur(2px); }
+.upload-dialog header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.upload-dialog h2 { font: 28px Georgia, serif; margin-bottom: 8px; }
+.upload-dialog p { font-size: 13px; line-height: 1.6; }
+.upload-dialog header p { color: #71817b; }
+.upload-dialog footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.upload-dropzone { display: flex; align-items: center; flex-direction: column; text-align: center; gap: 14px; border: 2px dashed #b6cdc2; border-radius: 10px; padding: 24px 16px; background: #f3f6f4; margin: 22px 0; font-size: 13px; }
+.upload-dropzone.is-over { background: #dce7e1; border-color: #1d4f5a; }
+.upload-dropzone > span { font-size: 32px; color: #1d4f5a; }
+.upload-dropzone small { color: #71817b; }
+.upload-dropzone input { width: 100%; max-width: 280px; font-size: 12px; }
+.mapping-dialog { width: min(920px, calc(100vw - 32px)); }
+.mapping-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 20px 0; }
+.mapping-fields label { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; }
+.mapping-fields select { width: 100%; background: #f3f6f4; border: 1px solid #d6e1dc; padding: 8px; border-radius: 6px; }
+.mapping-fields small { color: #71817b; line-height: 1.4; }
+.upload-dialog h3 { font-size: 13px; margin: 16px 0 8px; }
+.upload-preview { max-height: 190px; overflow: auto; border: 1px solid #d6e1dc; border-radius: 8px; }
+.upload-warning, .upload-status { border: 1px solid #dccb9a; background: #fff8e8; border-radius: 8px; padding: 12px; margin-top: 14px; }
+.upload-status { margin: 0 0 18px; font-size: 13px; line-height: 1.6; }
+.upload-status button { margin: 10px 8px 0 0; }
+.upload-status strong { display: block; }
+.dataset-name { font-size: 11px; color: #71817b; display: block; margin-top: 6px; overflow-wrap: anywhere; }
+.assumption-label { display: block; background: #fff4d8; color: #7e5e18; font-size: 10px; font-weight: 600; padding: 5px 8px; border-radius: 5px; margin-bottom: 8px; }
+.canvas-card > .assumption-label { order: -1; flex-shrink: 0; padding: 3px 5px; margin-bottom: 4px; font-size: 9px; pointer-events: none; }
+.canvas-card:has(> .assumption-label) .chart.sparkline { flex-basis: 35px; }
+.upload-empty { font-size: 12px; line-height: 1.6; color: #71817b; padding-top: 10px; }
+.canvas-card.upload-unavailable > :not(.card-heading):not(.card-toolbar):not(.upload-empty):not(.react-resizable-handle) { display: none; }
+.empty-upload-entry { text-align: center; padding: 0 0 28px; }
+.upload-remap-notice { font-size: 12px; color: #71817b; }
+.upload-neutral { color: #78867f !important; }
+.uploaded-data .calculation-drawer > p.muted { display: none; }
+.uploaded-data .calculation-drawer::after { content: 'Beräknat lokalt från din uppladdade fil. Alla värden kommer från DuckDB.'; display: block; color: #78867f; font-size: 14px; line-height: 1.7; }
+@media (max-width: 899px) {
+  .upload-sidebar { order: 1; border-right: 0; border-bottom: 1px solid #d6e1dc; }
+  .upload-sidebar > .palette { border-bottom: 0; }
+  .upload-sidebar > .upload-entry { margin: 0 16px 12px; align-self: flex-start; }
+  .mapping-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .upload-dialog { padding: 20px 16px; }
+}
+@media (max-width: 420px) { .mapping-fields { grid-template-columns: minmax(0, 1fr); } }
