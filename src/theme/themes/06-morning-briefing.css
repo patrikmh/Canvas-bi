@@ -1,0 +1,105 @@
+/* News editing: masthead, lead/deck/byline, secondary stories, briefs and corrections. */
+:root[data-theme='06'] {
+  --bg: #FBFBF8; --workspace-bg: #FBFBF8; --surface: #FBFBF8; --surface-alt: #f1f1ec;
+  --ink: #121212; --ink-control: #121212; --ink-number: #121212;
+  --ink-muted: #575752; --ink-secondary: #575752; --ink-tertiary: #575752; --ink-faint: #666660;
+  --accent: #2E5E4E; --accent-hover: #22483b; --accent-selection: #2E5E4E;
+  --good: #2E5E4E; --bad: #aa2632; --trace-good: #2E5E4E;
+  --rule: #b8b8af; --rule-card: #b8b8af; --rule-soft: #dadad3; --rule-hover: #121212;
+  --banner-bg: #FBFBF8; --banner-ink: #575752; --banner-rule: #121212;
+  --palette-hover: #eaeae2; --icon-rule: #575752; --ink-handle: #88887f; --ink-toolbar: #121212;
+  --ink-breadcrumb: #575752; --local-dot: #575752; --rule-bad: #aa2632;
+  --table-header-bg: #f1f1ec; --approval-bg: #f1f1ec; --approval-ink: #121212;
+  --approval-badge-bg: transparent; --confidence-bg: #f1f1ec; --warning-bg: #f1f1ec;
+  --warning-ink: #121212; --warning-rule: #575752; --upload-warning-bg: #f1f1ec;
+  --assumption-ink: #121212; --dropzone-rule: #575752; --backdrop-bg: #12121255;
+  --font-body: 'Libre Franklin', sans-serif; --font-num: 'Libre Franklin', sans-serif;
+  --font-display: 'Old Standard TT', serif; --font-display-short: 'Old Standard TT', serif;
+  --numeric-variant: tabular-nums; --fs-base: 12px; --fs-sm: 11px; --fs-xs: 10px;
+  --radius-card: 0; --radius-control: 0; --radius-20px: 0; --radius-9px: 0; --radius-8px: 0;
+  --radius-14px: 0; --radius-10px: 0; --radius-4px: 0; --radius-7px: 0; --radius-30px: 0; --radius-panel: 0;
+  --border-card: 0; --shadow-card: none; --shadow-card-hover: none; --shadow-selected: none;
+  --shadow-selected-hover: none; --shadow-drag: none; --shadow-drawer: none; --shadow-upload: none;
+  --shadow-assistant-toggle: none; --shadow-assistant-panel: none; --canvas-background: none;
+  --pad-card: 12px 0 10px;
+}
+:root[data-theme='06'] .demo-banner { letter-spacing: .02em; justify-content: flex-start; padding-left: 20px; font-size: 10px; }
+:root[data-theme='06'] .canvas-card, :root[data-theme='06'] .detail-view, :root[data-theme='06'] .calculation-drawer { animation: none; transition: none; }
+:root[data-theme='06'] .workspace-scroll { scroll-behavior: auto; padding-top: 16px; }
+:root[data-theme='06'] .workspace-header { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 16px 26px 10px; border-bottom: 3px double #121212; }
+:root[data-theme='06'] .workspace-header h1 { font-size: 32px; }
+:root[data-theme='06'] .briefing-dateline { grid-column: 1 / -1; font-size: 11px; line-height: 1.4; }
+:root[data-theme='06'] .brand h2 { font-size: 25px; }
+:root[data-theme='06'] .palette { padding: 22px 16px; }
+:root[data-theme='06'] .palette-content h3 { color: #2E5E4E; border-bottom: 2px solid #2E5E4E; padding-bottom: 8px; margin-top: 25px; }
+:root[data-theme='06'] .palette-item { padding: 10px 0; gap: 8px; }
+:root[data-theme='06'] .palette-icon { background: transparent; flex-basis: 22px; }
+:root[data-theme='06'] .palette-item strong { font-size: 12px; }
+:root[data-theme='06'] .palette-item small { font-size: 10px; }
+:root[data-theme='06'] .local-dot { display: none; }
+:root[data-theme='06'] .canvas-card { border-bottom: 1px solid #b8b8af; }
+:root[data-theme='06'] .canvas-card.selected { outline: 1px solid #2E5E4E; outline-offset: 4px; }
+:root[data-theme='06'] .insight-card { border-bottom: 3px double #121212; }
+:root[data-theme='06'] .insight-card .card-title { color: #2E5E4E; }
+:root[data-theme='06'] .insight-content h2 { font-size: 34px; line-height: 1.04; max-width: 680px; letter-spacing: -.6px; }
+:root[data-theme='06'] .insight-content > p { font: 17px/1.35 'Newsreader', serif; }
+:root[data-theme='06'] .insight-content .briefing-byline { font: 10px/1.4 'Libre Franklin', sans-serif; padding-top: 8px; color: #575752; }
+:root[data-theme='06'] .insight-actions { padding-top: 8px; }
+:root[data-theme='06'] .insight-actions button { padding: 5px 9px; }
+:root[data-theme='06'] .kind-kpi { border-bottom: 1px solid #121212; padding: 12px 0 10px; }
+:root[data-theme='06'] .kind-kpi .kpi-value { font-size: clamp(25px, 2.4vw, 35px); font-weight: 600; }
+:root[data-theme='06'] .kpi-delta { max-width: none; }
+:root[data-theme='06'] .chart.sparkline { flex-basis: 44px; }
+:root[data-theme='06'] .card-heading { margin-bottom: 7px; }
+:root[data-theme='06'] .card-heading h3 { font-size: 11px; }
+:root[data-theme='06'] .detail-chart { padding: 16px 0; border-bottom: 1px solid #121212; }
+:root[data-theme='06'] .detail-description { font-family: 'Newsreader', serif; }
+:root[data-theme='06'] .calculation-result strong { color: #121212; }
+:root[data-theme='06'] .assistant-heading { border-bottom: 3px double #121212; }
+:root[data-theme='06'] .assistant-heading h2 { font: 22px 'Old Standard TT', serif; }
+:root[data-theme='06'] .assistant-messages { padding: 14px 20px; }
+:root[data-theme='06'] .analyst-memo { font: 16px/1.42 'Newsreader', serif; }
+:root[data-theme='06'] .analyst-memo h2 { font: 28px/1.08 'Old Standard TT', serif; letter-spacing: -.3px; }
+:root[data-theme='06'] .memo-status { font: 11px 'Libre Franklin', sans-serif; }
+:root[data-theme='06'] .memo-limits { border: 1px solid #b8b8af; padding: 10px; font: 12px/1.5 'Libre Franklin', sans-serif; margin: 14px 0; }
+:root[data-theme='06'] .memo-limits::before { content: 'Rättelser / Förbehåll'; display: block; font-weight: 600; margin-bottom: 5px; color: #121212; }
+:root[data-theme='06'] .memo-findings li { margin: 16px 0; }
+:root[data-theme='06'] .finding-number { font-family: 'Libre Franklin', sans-serif; font-size: 14px; margin-right: 4px; }
+:root[data-theme='06'] .memo-review-actions { font: 10px 'Libre Franklin', sans-serif; gap: 14px; padding-top: 4px; }
+:root[data-theme='06'] .memo-signoff { font: 11px/1.6 'Libre Franklin', sans-serif; border-color: #b8b8af; }
+:root[data-theme='06'] .memo-confidence { font-size: 14px; }
+:root[data-theme='06'] .memo-method, :root[data-theme='06'] .memo-log { font: 12px/1.5 'Libre Franklin', sans-serif; }
+:root[data-theme='06'] .assistant-chips { border-top: 1px solid #121212; gap: 0; padding: 8px 20px; }
+:root[data-theme='06'] .assistant-chips::before { content: 'Kortfattat'; width: 100%; font: 19px 'Old Standard TT', serif; padding-bottom: 4px; }
+:root[data-theme='06'] .assistant-chip { flex: 1 0 45%; text-align: left; background: transparent; border: 0; padding: 5px 4px 5px 0; text-decoration: underline; line-height: 1.4; }
+:root[data-theme='06'] .approval-badge { display: none; }
+:root[data-theme='06'] .watch-card { border: 1px solid #121212; padding: 12px; }
+:root[data-theme='06'] .watch-card h3 { font: 22px 'Old Standard TT', serif; }
+:root[data-theme='06'] .calculation-drawer::backdrop, :root[data-theme='06'] .settings-dialog::backdrop, :root[data-theme='06'] .upload-dialog::backdrop { backdrop-filter: none; }
+@media (min-width: 1280px) {
+  :root[data-theme='06'] .app-shell { grid-template-columns: 180px minmax(0, 1fr) 420px; }
+}
+@media (min-width: 900px) and (max-width: 1279px) {
+  :root[data-theme='06'] .app-shell { grid-template-columns: 145px minmax(0, 1fr) 350px; }
+  :root[data-theme='06'] .workspace-header { grid-template-columns: 1fr; padding: 12px 18px; }
+  :root[data-theme='06'] .workspace-header h1 { font-size: 27px; }
+  :root[data-theme='06'] .insight-content h2 { font-size: 25px; }
+  :root[data-theme='06'] .insight-content > p { font-size: 14px; }
+  :root[data-theme='06'] .kind-kpi .kpi-value { font-size: 22px; }
+}
+@media (max-width: 899px) {
+  :root[data-theme='06'] .workspace-header { grid-template-columns: 1fr; padding: 14px; }
+  :root[data-theme='06'] .workspace-header h1 { white-space: normal; font-size: 30px; }
+  :root[data-theme='06'] .palette { padding: 12px 16px; }
+  :root[data-theme='06'] .kind-insight { min-height: 0; }
+  :root[data-theme='06'] .insight-content h2 { font-size: 32px; }
+  :root[data-theme='06'] .assistant-panel { background: #FBFBF8; }
+  :root[data-theme='06'] .demo-banner { font-size: 9px; }
+}
+@media (min-width: 900px) and (max-width: 1100px) {
+  :root[data-theme='06'] .app-shell { grid-template-columns: 120px minmax(0, 1fr) 300px; }
+  :root[data-theme='06'] .palette { padding: 18px 10px; }
+  :root[data-theme='06'] .palette-item { gap: 5px; }
+  :root[data-theme='06'] .insight-content > p { font-size: 13px; }
+  :root[data-theme='06'] .insight-content h2 { font-size: 24px; }
+}
