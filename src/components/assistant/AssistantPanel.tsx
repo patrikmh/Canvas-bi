@@ -14,6 +14,10 @@ import { watchTriggers } from '../../analysis/watch'
 import type { Watch } from '../../analysis/watch'
 import { WatchCard } from './WatchCard'
 import { SettingsDialog } from './SettingsDialog'
+import { getTheme } from '../../theme'
+import { AnalystMemo } from './AnalystMemo'
+import { runIdentity } from './memo'
+import { findingStore } from '../charts/findings'
 import './assistant.css'
 
 export interface AssistantMessage { id: string; role: 'assistant' | 'user'; content: ReactNode }
@@ -28,6 +32,8 @@ interface Props {
 }
 export function AssistantPanel(props: Props) {
   const { chips, engine, dashboard, steps, result, activities, log, selected } = props
+  const memo = getTheme().analyst === 'memo'
+  const run = runIdentity(activities)
   const [messages, setMessages] = useState<AssistantMessage[]>([])
   const [input, setInput] = useState('')
   const [open, setOpen] = useState(false)
@@ -38,12 +44,23 @@ export function AssistantPanel(props: Props) {
   const [watches, setWatches] = useState<Watch[]>([])
   const bottom = useRef<HTMLDivElement>(null)
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
-  const say = (content: ReactNode, role: AssistantMessage['role'] = 'assistant') => setMessages(items => [...items, { id: crypto.randomUUID(), role, content }])
+  const say = (content: ReactNode, role: AssistantMessage['role'] = 'assistant') => {
+    if (memo && role === 'assistant' && typeof content === 'string') log('Uppföljning', content.replace(/\bJag\b/g, 'Assistenten').replace(/\bjag\b/g, 'assistenten'))
+    setMessages(items => [...items, { id: crypto.randomUUID(), role, content }])
+  }
   useEffect(() => {
+    if (memo) return
     if (tab === 'Assistent') bottom.current?.scrollIntoView({ block: 'nearest' })
     else bottom.current?.parentElement?.scrollTo({ top: 0 })
   }, [messages, tab, watches.length])
   useEffect(() => () => timers.current.forEach(clearTimeout), [])
+  useEffect(() => {
+    if (!getTheme().chart.findingMarkers) return
+    const breakpoint = result?.steps.find(step => step.tool === 'findLatestChange')?.summary
+    const changeStart = dashboard?.history.data.find(row => breakpoint?.includes(fmtMonth(row.month)))?.month ?? null
+    findingStore.publish(result && !props.analyzing ? { result, changeStart } : null)
+    return () => findingStore.publish(null)
+  }, [result, dashboard?.history.data, props.analyzing])
   useEffect(() => {
     function propose() {
       if (!dashboard) return
@@ -60,7 +77,7 @@ export function AssistantPanel(props: Props) {
     setWatches(items => items.map(item => item.id === next.id ? next : item))
     log(next.status === 'Aktiv' ? 'Bevakning godkänd' : next.status === 'Avvisad' ? 'Bevakning avvisad' : 'Bevakning ändrad', `Tröskel ${fmtPct(next.threshold, 0)} · ${next.channel} · ${next.owner}`)
     if (next.status === 'Aktiv') {
-      setTab('Bevakningar')
+      setTab(memo ? 'Assistent' : 'Bevakningar')
       const snapshot = dashboard?.snapshot.data
       if (snapshot && watchTriggers(next, snapshot.margin.current, snapshot.margin.previousMonth)) {
         timers.current.push(setTimeout(() => {
@@ -121,13 +138,15 @@ export function AssistantPanel(props: Props) {
   }
   return <>
     <button className="assistant-toggle primary" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="assistant-panel">{open ? 'Stäng assistenten' : 'Assistent'}</button>
-    <aside id="assistant-panel" className={`assistant-panel ${open ? 'is-open' : ''}`} aria-label="Assistent">
-      <header className="assistant-heading"><h2>Assistent</h2><p>Bygger och förklarar utifrån dina nyckeltal</p><button className="settings-button" aria-label="Inställningar" onClick={() => setSettingsOpen(true)}>⚙</button></header>
+    <aside id="assistant-panel" className={`assistant-panel ${open ? 'is-open' : ''}${memo ? ' analyst-memo-panel' : ''}`} aria-label="Assistent">
+      <header className="assistant-heading"><h2>{getTheme().copy?.assistantTitle ?? (memo ? 'Analysanteckning' : 'Assistent')}</h2><p>{memo ? 'Fynd, underlag och granskning' : 'Bygger och förklarar utifrån dina nyckeltal'}</p><button className="settings-button" aria-label="Inställningar" onClick={() => setSettingsOpen(true)}>⚙</button></header>
       <div className="assistant-tabs" role="tablist" aria-label="Assistentvyer">{['Assistent', 'Bevakningar', 'Aktivitet'].map(name => <button key={name} role="tab" aria-selected={tab === name} onClick={() => setTab(name)}>{name}</button>)}</div>
       <div className="assistant-messages" role="tabpanel" aria-label={tab}>
         {tab === 'Assistent' && <>
+          {memo ? <AnalystMemo key={run.id} result={result} steps={steps} dashboard={dashboard} engine={engine} activities={activities} analyzing={props.analyzing} watchApproved={watches.some(watch => watch.status === 'Aktiv') && activities.findLastIndex(item => item.action === 'Bevakning godkänd') > activities.findLastIndex(item => item.id === run.id)} log={log} onExplain={props.onExplain} /> : <>
           <div data-testid="agent-trace" className="agent-trace" aria-live="polite">{steps.map((step, index) => <details key={index} data-testid={`trace-step-${index}`} data-status={step.status} className={`trace-step ${step.status}`}><summary><span className={`trace-icon ${step.status}`}>{step.status === 'done' ? '✓' : step.status === 'failed' ? '!' : step.status === 'pending' ? '○' : ''}</span>{step.label}</summary><p>{step.summary || 'Inväntar verktygets resultat.'}</p><p>Verktyg: {step.tool || '—'} · {step.duration} ms</p><pre>{JSON.stringify(step.input, null, 2)}</pre><pre>{step.sql || 'SQL visas när verktyget har körts.'}</pre></details>)}{result && <span className={`confidence ${result.confidence.startsWith('Låg') ? 'low' : ''}`}>{result.confidence}</span>}</div>
           <div role="log" aria-live="polite">{!messages.length && <p>Jag analyserar dina nyckeltal. Klicka på ett tal eller dubbelklicka på ett kort för att utforska produkter och ordrar.</p>}{messages.map(message => <div key={message.id} data-testid="assistant-message" className={`assistant-message ${message.role}`}>{message.content}</div>)}</div>
+          </>}
           {watches.map(watch => <WatchCard key={watch.id} watch={watch} onChange={updateWatch} onAsk={() => { say('Bevakningen är simulerad och börjar först när du godkänner. Regeln testar vald månads marginal och förändringen mot föregående månad. Ändra tröskeln, ägare eller kanal innan godkännandet.'); log('Bevakningspolicy förklarad') }} />)}
         </>}
         {tab === 'Bevakningar' && <section data-testid="watch-list"><h3>Bevakningar</h3>{!watches.some(watch => watch.status === 'Aktiv') && <p>Inga aktiva bevakningar. Föreslå en via ”Bevaka marginalen”.</p>}{watches.filter(watch => watch.status === 'Aktiv').map(watch => <div className="watch-card" key={watch.id}><h3>Bruttomarginal · Aktiv</h3><p>{watch.channel} (simulerad) · {watch.owner} · {watch.frequency}</p><p>Tröskel {fmtPct(watch.threshold, 0)} · fall &gt; {fmtPp(watch.drop).replace('+', '')}</p>{watch.alert && <p data-testid="watch-alert" className="negative" role="status">{watch.alert}</p>}</div>)}</section>}
@@ -135,10 +154,10 @@ export function AssistantPanel(props: Props) {
         <div ref={bottom} />
       </div>
       {tab === 'Assistent' && <>
-        <div className="assistant-chips">{chips.map(chip => <button className="chip" disabled={sending || props.analyzing || !dashboard} key={chip.id} onClick={() => void send(chip.label)}>{chip.label}</button>)}</div>
+        <div className="assistant-chips">{chips.map(chip => <button className="chip assistant-chip" disabled={sending || props.analyzing || !dashboard} key={chip.id} onClick={() => void send(chip.label)}>{chip.label}</button>)}</div>
         {selected && <p className="selected-context" data-testid="selected-context">Markerat: <strong>{selected.title}</strong><button aria-label="Avmarkera kort" onClick={props.onClearSelection}>×</button></p>}
         <form className="assistant-input" onSubmit={event => { event.preventDefault(); if (input.trim()) { void send(input.trim(), true); setInput('') } }}>
-          <input aria-label="Fråga eller be mig ändra något" placeholder={selected ? 'Fråga om det markerade kortet' : 'Fråga eller be mig ändra något'} value={input} onChange={event => setInput(event.target.value)} />
+          <input aria-label={memo ? 'Fråga eller föreslå en ändring' : 'Fråga eller be mig ändra något'} placeholder={selected ? 'Fråga om det markerade kortet' : memo ? 'Fråga eller föreslå en ändring' : 'Fråga eller be mig ändra något'} value={input} onChange={event => setInput(event.target.value)} />
           <button className="primary" disabled={sending || props.analyzing || !dashboard} type="submit">{sending ? 'Arbetar…' : 'Skicka'}</button>
         </form>
       </>}

@@ -1,0 +1,26 @@
+.analyst-memo { color: var(--ink-control); font-family: var(--font-body); font-size: var(--fs-sm); line-height: 1.4; }
+.analyst-memo h2 { font-family: var(--font-body); font-size: var(--fs-lg); line-height: 1.35; margin: 10px 0; }
+.memo-status, .memo-signoff, .memo-confidence { margin: 10px 0; }
+.memo-limits { color: var(--ink-muted); margin-bottom: 12px; }
+.memo-findings { list-style: none; margin: 0; padding: 0; }
+.memo-findings li { margin: 12px 0; }
+.finding-number { font-weight: 600; }
+.memo-footnote { display: inline-block; min-width: 18px; line-height: 1.2; border: 0; padding: 1px 3px; color: var(--accent); text-decoration: underline; font-size: inherit; background: transparent; }
+.memo-review-actions { display: flex; gap: 12px; margin-top: 4px; }
+.memo-review-actions button { border: 0; padding: 2px 0; font-size: inherit; background: transparent; color: var(--ink-control); text-decoration: underline; }
+.memo-review-actions button[aria-pressed='true'] { font-weight: 700; text-decoration-thickness: 2px; }
+.memo-review-form label { display: block; }
+.memo-review-form textarea { display: block; width: 100%; min-height: 60px; font: inherit; }
+.memo-review-note { margin-top: 4px; }
+.memo-signoff { padding: 10px 0; border-top: var(--border-soft); border-bottom: var(--border-soft); }
+.memo-method, .memo-log { margin-top: 10px; }
+.memo-method summary, .memo-log summary { cursor: pointer; }
+.memo-log-scroll { overflow: auto; }
+.memo-log table, .memo-log pre { font-family: ui-monospace, monospace; font-size: var(--fs-xs); }
+.memo-log th, .memo-log td { font: inherit; text-align: left; vertical-align: top; padding: 6px; }
+.memo-log .trace-step { color: inherit; }
+.memo-log .trace-step pre { background: transparent; }
+.analyst-memo-panel .assistant-chip { border-radius: var(--radius-control); }
+.analyst-memo-panel .approval-badge { letter-spacing: 0; background: transparent; padding: 0; }
+.analyst-memo-panel .assistant-messages { scroll-behavior: auto; }
+.analyst-memo-panel .calculation-drawer p { overflow-wrap: anywhere; }

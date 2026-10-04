@@ -1,0 +1,85 @@
+:root[data-theme='03'] {
+  --font-body: 'Libre Franklin', sans-serif; --font-display: 'Source Serif 4', serif; --font-display-short: var(--font-display); --font-num: var(--font-body);
+  --numeric-variant: lining-nums tabular-nums; --bg: #FFF1E5; --workspace-bg: #FFF1E5; --surface: #FFF1E5; --surface-alt: #F2DFCE;
+  --ink: #1A1714; --ink-control: #262A33; --ink-number: #1A1714; --ink-muted: #645B53; --ink-secondary: #645B53; --ink-tertiary: #645B53; --ink-faint: #645B53;
+  --accent: #0D7680; --accent-hover: #095A62; --accent-selection: #0D7680; --good: #0D7680; --bad: #990F3D;
+  --banner-bg: #F2DFCE; --banner-ink: #645B53; --banner-rule: #D8C8B9; --rule: #B8AA9C; --rule-card: #D8C8B9; --rule-soft: #D8C8B9; --rule-hover: #0D7680;
+  --table-header-bg: #F2DFCE; --approval-bg: #F2DFCE; --approval-ink: #1A1714; --ink-toolbar: #645B53; --ink-handle: #B8AA9C; --ink-breadcrumb: #645B53;
+  --palette-hover: #F2DFCE; --icon-rule: #B8AA9C; --rule-bad: #990F3D; --warning-bg: #F2DFCE; --warning-ink: #1A1714;
+  --radius-card: 0; --radius-control: 2px; --radius-message: 0; --radius-9px: 0; --border-card: 0;
+  --shadow-card: none; --shadow-card-hover: none; --shadow-selected: none; --canvas-background: none;
+  --fs-base: 12px; --fs-xs: 10px; --fs-sm: 11px; --fs-md: 13px; --fs-lg: 17px; --fs-xl: 16px; --fs-headline: 30px;
+  --pad-card: 14px 12px; --space-26: 22px;
+}
+
+:root[data-theme='03'] .demo-banner { letter-spacing: 0; font-size: 11px; font-weight: 400; }
+:root[data-theme='03'] .canvas-card, :root[data-theme='03'] .detail-view { animation: none; transition: none; }
+:root[data-theme='03'] .workspace-scroll { scroll-behavior: auto; }
+:root[data-theme='03'] .approval-badge { display: none; }
+:root[data-theme='03'] .local-dot { display: none; }
+:root[data-theme='03'] .palette-icon { background: transparent; border: 0; border-radius: 0; }
+:root[data-theme='03'] .palette-icon-good[fill], :root[data-theme='03'] .palette-icon-bad[fill] { fill: var(--ink-control); }
+:root[data-theme='03'] .palette-icon-bad[stroke] { stroke: var(--ink-control); }
+:root[data-theme='03'] .assistant-chip { border-radius: var(--radius-control); }
+:root[data-theme='03'] .memo-log table { white-space: normal; }
+:root[data-theme='03'] .analyst-memo, :root[data-theme='03'] .watch-card, :root[data-theme='03'] .detail-description { overflow-wrap: anywhere; }
+:root[data-theme='03'] .memo-findings p { margin: 0; }
+:root[data-theme='03'] .memo-review-actions { flex-wrap: wrap; }
+:root[data-theme='03'] .canvas-card.selected { outline: 2px solid var(--accent-selection); outline-offset: 2px; box-shadow: none; }
+:root[data-theme='03'] .calculation-drawer::backdrop, :root[data-theme='03'] .settings-dialog::backdrop { backdrop-filter: none; }
+:root[data-theme='03'] .eyebrow { letter-spacing: 0; text-transform: none; }
+@media (max-width: 899px) {
+  :root[data-theme='03'] .demo-banner { font-size: 9px; text-align: center; }
+  :root[data-theme='03'] .workspace-header h1 { white-space: normal; }
+  :root[data-theme='03'] .assistant-panel { border-radius: var(--radius-control); box-shadow: none; }
+  :root[data-theme='03'] .assistant-toggle { border-radius: var(--radius-control); box-shadow: none; }
+  :root[data-theme='03'] .workspace-actions { gap: 8px; }
+  :root[data-theme='03'] .theme-indicator { font-size: 9px; }
+}
+/* Pink paper: lead story, financial graphics and a bylined analysis column. */
+:root[data-theme='03'] .brand h2 { font-size: 26px; font-weight: 600; }
+:root[data-theme='03'] .palette { background: #FFF1E5; padding: 22px 14px; }
+:root[data-theme='03'] .palette-item { padding: 10px 0; gap: 10px; }
+:root[data-theme='03'] .palette-item strong { font-size: 13px; }
+:root[data-theme='03'] .palette-item small { font-size: 11px; }
+:root[data-theme='03'] .workspace-header { border-bottom: 1px solid #B8AA9C; min-height: 66px; }
+:root[data-theme='03'] .workspace-header h1 { font-size: 25px; font-weight: 600; }
+:root[data-theme='03'] .kind-insight { padding: 18px 0 12px; }
+:root[data-theme='03'] .kind-insight .card-heading { margin-bottom: 6px; }
+:root[data-theme='03'] .insight-content h2 { font-weight: 600; font-size: 30px; line-height: 1.1; }
+:root[data-theme='03'] .insight-content p { font-size: 16px; line-height: 1.5; }
+:root[data-theme='03'] .kind-kpi { background: #F2DFCE; padding: 12px; }
+:root[data-theme='03'] .kpi-value { font-size: 28px; }
+:root[data-theme='03'] .kpi-delta { font-size: 11px; }
+:root[data-theme='03'] .kind-trend, :root[data-theme='03'] .kind-waterfall, :root[data-theme='03'] .kind-bars { padding: 16px 0 12px; }
+:root[data-theme='03'] .card-heading h3 { font-size: 12px; font-weight: 600; }
+:root[data-theme='03'] .card-subtitle { font-size: 11px; }
+:root[data-theme='03'] .kind-trend::after, :root[data-theme='03'] .kind-waterfall::after, :root[data-theme='03'] .kind-bars::after, :root[data-theme='03'] .detail-chart::after { content: 'Källa: DemoCo AB (syntetiska data)'; display: block; font: 10px/1.4 'Libre Franklin', sans-serif; color: #645B53; margin-top: 8px; }
+:root[data-theme='03'] .assistant-panel { background: #FFF1E5; border-left: 1px solid #B8AA9C; }
+:root[data-theme='03'] .assistant-heading { min-height: 66px; padding: 18px 22px 12px; }
+:root[data-theme='03'] .assistant-heading h2 { font: 600 24px 'Source Serif 4', serif; }
+:root[data-theme='03'] .assistant-heading p { font-size: 11px; }
+:root[data-theme='03'] .assistant-tabs { padding: 8px 18px; }
+:root[data-theme='03'] .assistant-tabs button[aria-selected='true'] { background: transparent; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+:root[data-theme='03'] .assistant-messages { padding: 12px 22px; }
+:root[data-theme='03'] .analyst-memo { font: 16px/1.45 'Source Serif 4', serif; }
+:root[data-theme='03'] .analyst-memo h2 { font: 600 28px/1.1 'Source Serif 4', serif; letter-spacing: -.4px; }
+:root[data-theme='03'] .memo-status { font: 12px 'Libre Franklin', sans-serif; margin: 10px 0 16px; }
+:root[data-theme='03'] .memo-limits { font: 11px/1.4 'Libre Franklin', sans-serif; }
+:root[data-theme='03'] .memo-findings li { margin: 18px 0; }
+:root[data-theme='03'] .finding-number { font-family: 'Libre Franklin', sans-serif; font-size: 14px; }
+:root[data-theme='03'] .memo-review-actions { font: 11px 'Libre Franklin', sans-serif; gap: 16px; margin-top: 6px; }
+:root[data-theme='03'] .memo-signoff { font: 11px/1.6 'Libre Franklin', sans-serif; border: 0; padding: 16px 0 8px; }
+:root[data-theme='03'] .memo-confidence { font-style: italic; font-size: 14px; }
+:root[data-theme='03'] .memo-method, :root[data-theme='03'] .memo-log { font: 12px/1.5 'Libre Franklin', sans-serif; }
+:root[data-theme='03'] .assistant-chips { padding: 12px 22px; gap: 5px 12px; }
+:root[data-theme='03'] .assistant-chip { background: transparent; border: 0; padding: 4px 0; text-decoration: underline; text-underline-offset: 3px; }
+:root[data-theme='03'] .assistant-input { padding: 12px 22px; }
+:root[data-theme='03'] .watch-card { padding: 14px; font: 12px/1.5 'Libre Franklin', sans-serif; }
+:root[data-theme='03'] .watch-card h3 { font: 600 20px 'Source Serif 4', serif; }
+:root[data-theme='03'] .detail-description { font-size: 20px; }
+:root[data-theme='03'] .detail-chart { padding: 18px 0; }
+:root[data-theme='03'] .product-links { padding-top: 16px; }
+/* Product charts have horizontal categories: remove the vertical value grid. */
+:root[data-theme='03'] .kind-bars .chart path[stroke='#D8C8B9'], :root[data-theme='03'] .product-detail .chart path[stroke='#D8C8B9'] { stroke: none; }
+@media (min-width: 1101px) { :root[data-theme='03'] .app-shell { grid-template-columns: 184px minmax(0, 1fr) 410px; } }

@@ -1,0 +1,104 @@
+/* Constructed 12-column composition: type scale, asymmetric measures, black rules. */
+:root[data-theme='08'] {
+  --bg: #ffffff; --workspace-bg: #ffffff; --surface: #ffffff; --surface-alt: #f2f2f2;
+  --ink: #000000; --ink-control: #000000; --ink-number: #000000;
+  --ink-muted: #555555; --ink-secondary: #555555; --ink-tertiary: #555555; --ink-faint: #555555;
+  --accent: #000000; --accent-hover: #333333; --accent-selection: #000000;
+  --good: #000000; --bad: #E30613; --trace-good: #000000;
+  --rule: #000000; --rule-card: #000000; --rule-soft: #cccccc; --rule-hover: #000000;
+  --banner-bg: #ffffff; --banner-ink: #000000; --banner-rule: #000000;
+  --palette-hover: #e5e5e5; --icon-rule: #555555; --ink-handle: #555555; --ink-toolbar: #000000;
+  --ink-breadcrumb: #555555; --local-dot: #000000; --rule-bad: #E30613;
+  --table-header-bg: #ffffff; --approval-bg: #ffffff; --approval-ink: #000000;
+  --approval-badge-bg: transparent; --confidence-bg: #ffffff; --warning-bg: #e5e5e5;
+  --warning-ink: #000000; --warning-rule: #000000; --upload-warning-bg: #e5e5e5;
+  --assumption-ink: #000000; --dropzone-rule: #000000; --backdrop-bg: #00000055;
+  --font-body: 'Hanken Grotesk', sans-serif; --font-num: 'Hanken Grotesk', sans-serif;
+  --font-display: 'Hanken Grotesk', sans-serif; --font-display-short: 'Hanken Grotesk', sans-serif;
+  --numeric-variant: tabular-nums; --fs-base: 12px; --fs-sm: 11px; --fs-xs: 10px;
+  --radius-card: 0; --radius-control: 0; --radius-20px: 0; --radius-9px: 0; --radius-8px: 0;
+  --radius-14px: 0; --radius-10px: 0; --radius-4px: 0; --radius-7px: 0; --radius-30px: 0; --radius-panel: 0;
+  --border-card: 0; --shadow-card: none; --shadow-card-hover: none; --shadow-selected: none;
+  --shadow-selected-hover: none; --shadow-drag: none; --shadow-drawer: none; --shadow-upload: none;
+  --shadow-assistant-toggle: none; --shadow-assistant-panel: none; --canvas-background: none;
+  --pad-card: 10px 0 8px;
+}
+:root[data-theme='08'] .demo-banner { font-size: 10px; letter-spacing: 0; justify-content: flex-start; padding-left: 16px; }
+:root[data-theme='08'] .canvas-card, :root[data-theme='08'] .detail-view, :root[data-theme='08'] .calculation-drawer { animation: none; transition: none; }
+:root[data-theme='08'] .workspace-scroll { padding-top: 16px; scroll-behavior: auto; }
+:root[data-theme='08'] .brand h2 { font: 700 27px 'Hanken Grotesk', sans-serif; letter-spacing: -1.2px; }
+:root[data-theme='08'] .palette { padding: 22px 14px; background: #ffffff; }
+:root[data-theme='08'] .palette-content h3 { margin-top: 36px; font-size: 13px; color: #000000; border-top: 1px solid #000000; padding-top: 8px; }
+:root[data-theme='08'] .palette-item { padding: 10px 0; gap: 8px; }
+:root[data-theme='08'] .palette-icon { flex-basis: 22px; background: transparent; }
+:root[data-theme='08'] .palette-item strong { font-size: 14px; }
+:root[data-theme='08'] .palette-item small { font-size: 10px; }
+:root[data-theme='08'] .local-dot { display: none; }
+:root[data-theme='08'] .workspace-header { align-items: flex-start; min-height: 112px; padding: 20px 26px 14px; border-bottom: 1px solid #000000; flex-wrap: wrap; }
+:root[data-theme='08'] .workspace-header h1 { font: 700 36px/1 'Hanken Grotesk', sans-serif; letter-spacing: -1.4px; }
+:root[data-theme='08'] .workspace-actions { margin-left: auto; }
+:root[data-theme='08'] .workspace-actions button { padding: 6px 8px; }
+:root[data-theme='08'] .canvas-card { border-bottom: 1px solid #000000; }
+:root[data-theme='08'] .canvas-card.selected { outline: 2px solid #000000; outline-offset: 3px; }
+:root[data-theme='08'] .card-heading h3 { font-size: 12px; }
+:root[data-theme='08'] .insight-card .card-heading { margin-bottom: 8px; }
+:root[data-theme='08'] .insight-content h2 { font: 700 32px/1.05 'Hanken Grotesk', sans-serif; letter-spacing: -1px; max-width: 83.333%; }
+:root[data-theme='08'] .insight-content p { font: 14px/1.4 'Hanken Grotesk', sans-serif; margin-left: 16.666%; }
+:root[data-theme='08'] .insight-actions { margin-left: 16.666%; padding-top: 8px; }
+:root[data-theme='08'] .insight-actions button { padding: 6px 9px; }
+:root[data-theme='08'] .kind-kpi { padding: 10px 0; }
+:root[data-theme='08'] .kpi-bullet .kpi-value { font-size: clamp(31px, 3vw, 44px); font-weight: 700; letter-spacing: -1.7px; line-height: 1.15; }
+:root[data-theme='08'] .bullet-graph { margin-top: 10px; min-height: 35px; height: 38px; }
+:root[data-theme='08'] .bullet-graph text { font-family: 'Hanken Grotesk', sans-serif; }
+:root[data-theme='08'] .bullet-variance { margin: 6px 0; font-size: 12px; }
+:root[data-theme='08'] .bullet-key { margin-top: 2px; }
+:root[data-theme='08'] .detail-summary > strong { font-size: 72px; letter-spacing: -3px; }
+:root[data-theme='08'] .detail-description { max-width: 83.333%; margin-left: 16.666%; font-size: 19px; }
+:root[data-theme='08'] .detail-chart { border-bottom: 1px solid #000000; padding: 16px 0; }
+:root[data-theme='08'] .assistant-heading { padding: 22px 20px 18px; min-height: 112px; border-bottom: 1px solid #000000; }
+:root[data-theme='08'] .assistant-heading h2 { font-size: 24px; font-weight: 700; letter-spacing: -.6px; max-width: 85%; }
+:root[data-theme='08'] .assistant-tabs { padding: 6px 20px; }
+:root[data-theme='08'] .assistant-tabs button { text-align: left; padding: 6px 0; }
+:root[data-theme='08'] .assistant-tabs button[aria-selected='true'] { text-decoration: underline; background: transparent; }
+:root[data-theme='08'] .assistant-messages { padding: 14px 20px; }
+:root[data-theme='08'] .analyst-memo { font-size: 14px; line-height: 1.45; }
+:root[data-theme='08'] .analyst-memo h2 { font: 700 34px/1.04 'Hanken Grotesk', sans-serif; letter-spacing: -1.1px; margin: 16px 0; }
+:root[data-theme='08'] .memo-status { font-size: 12px; margin: 0 0 12px; }
+:root[data-theme='08'] .memo-limits { font-size: 12px; max-width: 80%; margin-left: 20%; }
+:root[data-theme='08'] .memo-findings li { position: relative; margin: 0; padding: 16px 0 16px 20%; border-bottom: 1px solid #cccccc; }
+:root[data-theme='08'] .finding-number { position: absolute; left: 0; top: 15px; font-size: 40px; font-weight: 400; line-height: 1; }
+:root[data-theme='08'] .memo-review-actions { font-size: 11px; gap: 14px; padding-top: 8px; flex-wrap: wrap; }
+:root[data-theme='08'] .memo-signoff { margin: 16px 0; padding: 10px 0; font-size: 11px; line-height: 1.7; border-top: 1px solid #000000; border-bottom: 0; }
+:root[data-theme='08'] .memo-confidence { font-size: 12px; }
+:root[data-theme='08'] .memo-method, :root[data-theme='08'] .memo-log { font-size: 12px; }
+:root[data-theme='08'] .assistant-chips { padding: 12px 20px; gap: 0; }
+:root[data-theme='08'] .assistant-chip { width: 50%; text-align: left; background: transparent; border: 0; padding: 6px 8px 6px 0; font-size: 11px; line-height: 1.35; }
+:root[data-theme='08'] .assistant-input { border-top: 1px solid #000000; }
+:root[data-theme='08'] .assistant-input input { background: #ffffff; }
+:root[data-theme='08'] .approval-badge { display: none; }
+:root[data-theme='08'] .watch-card { border: 1px solid #000000; padding: 12px; }
+:root[data-theme='08'] .watch-card h3 { font-size: 21px; font-weight: 700; }
+:root[data-theme='08'] .calculation-drawer::backdrop, :root[data-theme='08'] .settings-dialog::backdrop, :root[data-theme='08'] .upload-dialog::backdrop { backdrop-filter: none; }
+@media (min-width: 1280px) {
+  :root[data-theme='08'] .app-shell { grid-template-columns: 164px minmax(0, 1fr) 440px; }
+}
+@media (min-width: 900px) and (max-width: 1279px) {
+  :root[data-theme='08'] .app-shell { grid-template-columns: 140px minmax(0, 1fr) 350px; }
+  :root[data-theme='08'] .workspace-header h1 { font-size: 28px; }
+  :root[data-theme='08'] .insight-content h2 { font-size: 24px; }
+  :root[data-theme='08'] .insight-content p { font-size: 12px; margin-left: 0; }
+  :root[data-theme='08'] .insight-actions { margin-left: 0; }
+  :root[data-theme='08'] .kpi-bullet .kpi-value { font-size: 24px; letter-spacing: -.6px; }
+}
+@media (max-width: 899px) {
+  :root[data-theme='08'] .palette { padding: 12px 16px; }
+  :root[data-theme='08'] .workspace-header { padding: 16px; min-height: 0; }
+  :root[data-theme='08'] .workspace-header h1 { font-size: 34px; white-space: normal; }
+  :root[data-theme='08'] .kind-insight { min-height: 0; }
+  :root[data-theme='08'] .insight-content h2 { max-width: 100%; }
+  :root[data-theme='08'] .insight-content p, :root[data-theme='08'] .insight-actions { margin-left: 0; }
+  :root[data-theme='08'] .detail-description { max-width: 100%; margin-left: 0; }
+  :root[data-theme='08'] .detail-summary > strong { font-size: 60px; }
+  :root[data-theme='08'] .assistant-heading { min-height: 84px; }
+  :root[data-theme='08'] .analyst-memo h2 { font-size: 29px; }
+}

@@ -6,7 +6,7 @@ export function WatchCard({ watch, onChange, onAsk }: { watch: Watch; onChange: 
   const [threshold, setThreshold] = useState(String(watch.threshold))
   const [owner, setOwner] = useState(watch.owner)
   const [channel, setChannel] = useState(watch.channel)
-  return <section className="watch-card" data-testid="approval-card">
+  return <section className="watch-card approval-card" data-testid="approval-card">
     <span className="approval-badge">APPROVAL REQUIRED</span><h3>Bevaka marginalen</h3>
     <p>Larma om bruttomarginalen understiger {fmtPct(watch.threshold, 0)} eller faller &gt; {fmtPp(watch.drop).replace('+', '')} mot föregående månad.</p>
     <p className="muted">{watch.channel} (simulerad) · {watch.owner} · {watch.frequency}</p>
