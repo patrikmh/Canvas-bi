@@ -135,7 +135,7 @@ export function AssistantPanel(props: Props) {
         <div ref={bottom} />
       </div>
       {tab === 'Assistent' && <>
-        <div className="assistant-chips">{chips.map(chip => <button className="chip" disabled={sending || props.analyzing || !dashboard} key={chip.id} onClick={() => void send(chip.label)}>{chip.label}</button>)}</div>
+        <div className="assistant-chips">{chips.map(chip => <button className="chip assistant-chip" disabled={sending || props.analyzing || !dashboard} key={chip.id} onClick={() => void send(chip.label)}>{chip.label}</button>)}</div>
         {selected && <p className="selected-context" data-testid="selected-context">Markerat: <strong>{selected.title}</strong><button aria-label="Avmarkera kort" onClick={props.onClearSelection}>×</button></p>}
         <form className="assistant-input" onSubmit={event => { event.preventDefault(); if (input.trim()) { void send(input.trim(), true); setInput('') } }}>
           <input aria-label="Fråga eller be mig ändra något" placeholder={selected ? 'Fråga om det markerade kortet' : 'Fråga eller be mig ändra något'} value={input} onChange={event => setInput(event.target.value)} />

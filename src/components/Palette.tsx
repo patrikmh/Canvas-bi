@@ -29,12 +29,12 @@ export function Palette({ onAdd }: { onAdd: (kind: CardKind) => void }) {
 
 function PaletteIcon({ kind }: { kind: CardKind }) {
   return <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
-    {kind === 'kpi' ? <><rect x="4" y="5" width="16" height="6" rx="1" fill="#1d4f5a" /><rect x="4" y="15" width="10" height="3" rx="1" fill="#2f7d4f" /></>
-      : kind === 'trend' ? <path d="M3 18 8 12 12 14 17 6 21 8" stroke="#1d4f5a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        : kind === 'bars' ? <><path d="M4 5h16M4 10h12M4 15h8" stroke="#1d4f5a" strokeWidth="3" /><path d="M4 20h6" stroke="#b3263a" strokeWidth="3" /></>
-          : kind === 'waterfall' ? <><rect x="3" y="5" width="4" height="15" fill="#1d4f5a" /><rect x="9" y="5" width="4" height="6" fill="#b3263a" /><rect x="15" y="11" width="4" height="5" fill="#b3263a" /><path d="M7 6h2m4 6h2" stroke="#9aa9a0" /></>
-            : kind === 'table' ? <><path d="M3 5h18M3 10h18M3 15h18M3 20h18M10 3v19" stroke="#9aa9a0" strokeWidth="1.5" /></>
-              : kind === 'insight' ? <path d="M3 6h18M3 11h15M3 16h18M3 21h10" stroke="#35433d" strokeWidth="2" />
-                : <text x="6" y="19" fill="#35433d" fontSize="19" fontFamily="Arial">T</text>}
+    {kind === 'kpi' ? <><rect x="4" y="5" width="16" height="6" rx="1" className="palette-icon-actual" fill="#1d4f5a" /><rect x="4" y="15" width="10" height="3" rx="1" className="palette-icon-good" fill="#2f7d4f" /></>
+      : kind === 'trend' ? <path d="M3 18 8 12 12 14 17 6 21 8" className="palette-icon-actual" stroke="#1d4f5a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        : kind === 'bars' ? <><path d="M4 5h16M4 10h12M4 15h8" className="palette-icon-actual" stroke="#1d4f5a" strokeWidth="3" /><path d="M4 20h6" className="palette-icon-bad" stroke="#b3263a" strokeWidth="3" /></>
+          : kind === 'waterfall' ? <><rect x="3" y="5" width="4" height="15" className="palette-icon-actual" fill="#1d4f5a" /><rect x="9" y="5" width="4" height="6" className="palette-icon-bad" fill="#b3263a" /><rect x="15" y="11" width="4" height="5" className="palette-icon-bad" fill="#b3263a" /><path d="M7 6h2m4 6h2" className="palette-icon-rule" stroke="#9aa9a0" /></>
+            : kind === 'table' ? <><path d="M3 5h18M3 10h18M3 15h18M3 20h18M10 3v19" className="palette-icon-rule" stroke="#9aa9a0" strokeWidth="1.5" /></>
+              : kind === 'insight' ? <path d="M3 6h18M3 11h15M3 16h18M3 21h10" className="palette-icon-ink" stroke="#35433d" strokeWidth="2" />
+                : <text x="6" y="19" className="palette-icon-ink" fill="#35433d" fontSize="19" fontFamily="Arial">T</text>}
   </svg>
 }

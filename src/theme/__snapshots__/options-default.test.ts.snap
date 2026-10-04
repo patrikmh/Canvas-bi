@@ -1,0 +1,385 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`default chart options retain the original literals > products 1`] = `
+{
+  "grid": {
+    "bottom": 35,
+    "left": 138,
+    "right": 24,
+    "top": 42,
+  },
+  "legend": {
+    "icon": "roundRect",
+    "itemHeight": 10,
+    "itemWidth": 10,
+    "right": 10,
+    "textStyle": {
+      "color": "#71817b",
+      "fontSize": 11,
+    },
+    "top": 0,
+  },
+  "series": [
+    {
+      "barGap": "15%",
+      "barWidth": 9,
+      "data": [],
+      "name": "Augusti 2026",
+      "type": "bar",
+    },
+    {
+      "barWidth": 9,
+      "data": [],
+      "itemStyle": {
+        "borderRadius": [
+          0,
+          2,
+          2,
+          0,
+        ],
+        "color": "#b3bcb8",
+      },
+      "name": "Augusti 2025",
+      "type": "bar",
+    },
+  ],
+  "tooltip": {
+    "trigger": "axis",
+    "valueFormatter": [Function],
+  },
+  "xAxis": {
+    "axisLabel": {
+      "color": "#71817b",
+      "fontSize": 10,
+      "formatter": [Function],
+    },
+    "splitLine": {
+      "lineStyle": {
+        "color": "#d8e2de",
+      },
+    },
+    "type": "value",
+  },
+  "yAxis": {
+    "axisLabel": {
+      "color": "#35423d",
+      "fontSize": 11,
+      "overflow": "truncate",
+      "width": 130,
+    },
+    "axisLine": {
+      "show": false,
+    },
+    "axisTick": {
+      "show": false,
+    },
+    "data": [],
+    "inverse": true,
+    "triggerEvent": true,
+    "type": "category",
+  },
+}
+`;
+
+exports[`default chart options retain the original literals > sparkline 1`] = `
+{
+  "grid": {
+    "bottom": 3,
+    "left": 2,
+    "right": 5,
+    "top": 5,
+  },
+  "series": [
+    {
+      "areaStyle": {
+        "color": "rgba(29,79,90,.09)",
+      },
+      "data": [
+        45,
+      ],
+      "itemStyle": {
+        "color": "#1d4f5a",
+      },
+      "lineStyle": {
+        "color": "#1d4f5a",
+        "width": 1.5,
+      },
+      "markPoint": {
+        "data": [
+          {
+            "coord": [
+              "2026-08",
+              45,
+            ],
+            "name": "Senaste månaden",
+          },
+        ],
+        "itemStyle": {
+          "color": "#b3263a",
+        },
+        "label": {
+          "show": false,
+        },
+        "symbol": "circle",
+        "symbolSize": 5,
+      },
+      "smooth": 0.25,
+      "symbol": "none",
+      "type": "line",
+    },
+  ],
+  "tooltip": undefined,
+  "xAxis": {
+    "axisLabel": {
+      "color": "#71817b",
+      "fontSize": 10,
+      "formatter": [Function],
+    },
+    "axisLine": {
+      "show": false,
+    },
+    "axisTick": {
+      "show": false,
+    },
+    "boundaryGap": false,
+    "data": [
+      "2026-08",
+    ],
+    "show": false,
+    "type": "category",
+  },
+  "yAxis": {
+    "axisLabel": {
+      "color": "#71817b",
+      "fontSize": 10,
+      "formatter": [Function],
+    },
+    "scale": true,
+    "show": false,
+    "splitLine": {
+      "lineStyle": {
+        "color": "#d8e2de",
+      },
+    },
+    "splitNumber": 4,
+    "type": "value",
+  },
+}
+`;
+
+exports[`default chart options retain the original literals > trend 1`] = `
+{
+  "grid": {
+    "bottom": 30,
+    "left": 60,
+    "right": 16,
+    "top": 15,
+  },
+  "series": [
+    {
+      "areaStyle": {
+        "color": "rgba(29,79,90,.09)",
+      },
+      "data": [
+        500,
+      ],
+      "itemStyle": {
+        "color": "#1d4f5a",
+      },
+      "lineStyle": {
+        "color": "#1d4f5a",
+        "width": 2,
+      },
+      "markPoint": {
+        "data": [
+          {
+            "coord": [
+              "2026-08",
+              500,
+            ],
+            "name": "Senaste månaden",
+          },
+        ],
+        "itemStyle": {
+          "color": "#1d4f5a",
+        },
+        "label": {
+          "show": false,
+        },
+        "symbol": "circle",
+        "symbolSize": 7,
+      },
+      "smooth": 0.25,
+      "symbol": "none",
+      "type": "line",
+    },
+  ],
+  "tooltip": {
+    "trigger": "axis",
+    "valueFormatter": [Function],
+  },
+  "xAxis": {
+    "axisLabel": {
+      "color": "#71817b",
+      "fontSize": 10,
+      "formatter": [Function],
+    },
+    "axisLine": {
+      "show": false,
+    },
+    "axisTick": {
+      "show": false,
+    },
+    "boundaryGap": false,
+    "data": [
+      "2026-08",
+    ],
+    "show": true,
+    "type": "category",
+  },
+  "yAxis": {
+    "axisLabel": {
+      "color": "#71817b",
+      "fontSize": 10,
+      "formatter": [Function],
+    },
+    "scale": false,
+    "show": true,
+    "splitLine": {
+      "lineStyle": {
+        "color": "#d8e2de",
+      },
+    },
+    "splitNumber": 5,
+    "type": "value",
+  },
+}
+`;
+
+exports[`default chart options retain the original literals > waterfall 1`] = `
+{
+  "grid": {
+    "bottom": 32,
+    "left": 52,
+    "right": 16,
+    "top": 25,
+  },
+  "series": [
+    {
+      "data": [
+        0,
+        45,
+        45,
+        0,
+      ],
+      "emphasis": {
+        "disabled": true,
+      },
+      "itemStyle": {
+        "borderColor": "transparent",
+        "color": "transparent",
+      },
+      "silent": true,
+      "stack": "margin",
+      "type": "bar",
+    },
+    {
+      "barMaxWidth": 70,
+      "data": [
+        50,
+        "-",
+        "-",
+        48,
+      ],
+      "itemStyle": {
+        "borderRadius": [
+          3,
+          3,
+          0,
+          0,
+        ],
+        "color": "#1d4f5a",
+      },
+      "label": {
+        "color": "#71817b",
+        "fontSize": 11,
+        "formatter": [Function],
+        "position": "top",
+        "show": true,
+      },
+      "stack": "margin",
+      "type": "bar",
+    },
+    {
+      "barMaxWidth": 70,
+      "data": [
+        "-",
+        {
+          "itemStyle": {
+            "color": "#b3263a",
+          },
+          "value": 5,
+        },
+        {
+          "itemStyle": {
+            "color": "#2f7d4f",
+          },
+          "value": 3,
+        },
+        "-",
+      ],
+      "itemStyle": {
+        "color": "#b3263a",
+      },
+      "label": {
+        "color": "#71817b",
+        "fontSize": 11,
+        "formatter": [Function],
+        "position": "top",
+        "show": true,
+      },
+      "stack": "margin",
+      "type": "bar",
+    },
+  ],
+  "tooltip": {
+    "formatter": [Function],
+    "trigger": "axis",
+  },
+  "xAxis": {
+    "axisLabel": {
+      "color": "#35423d",
+      "fontSize": 11,
+    },
+    "axisLine": {
+      "show": false,
+    },
+    "axisTick": {
+      "show": false,
+    },
+    "data": [
+      "Före",
+      "Fall",
+      "Upp",
+      "Nu",
+    ],
+    "type": "category",
+  },
+  "yAxis": {
+    "axisLabel": {
+      "color": "#71817b",
+      "fontSize": 10,
+      "formatter": [Function],
+    },
+    "interval": 2,
+    "max": [Function],
+    "min": 45,
+    "splitLine": {
+      "lineStyle": {
+        "color": "#d8e2de",
+      },
+    },
+    "type": "value",
+  },
+}
+`;

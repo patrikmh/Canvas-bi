@@ -213,16 +213,16 @@ export default function App() {
   return <div data-testid="app-root" data-ready={dashboard && !busy ? 'true' : 'false'} className={`app ${dataset.source === 'upload' ? 'uploaded-data' : ''}`}>
     {dataset.source === 'demo' && <div data-testid="demo-banner" className="demo-banner">KONCEPTDEMO – syntetisk demonstrationsdata</div>}
     <div className="app-shell">
-      <div className="upload-sidebar"><Palette onAdd={kind => add(kind)} /><button className="upload-entry" data-testid="upload-entry" disabled={!engine || busy} onClick={() => setUploadOpen(true)}>Ladda upp data</button></div>
-      <main className="workspace">
+      <div className="upload-sidebar sidebar"><Palette onAdd={kind => add(kind)} /><button className="upload-entry" data-testid="upload-entry" disabled={!engine || busy} onClick={() => setUploadOpen(true)}>Ladda upp data</button></div>
+      <main className="workspace canvas-area">
         <header className="workspace-header">
           {view ? <nav className="breadcrumbs" aria-label="Navigering"><button onClick={() => setView({ metric: view.metric, stage: 'trend' })}>{title}</button>{view.stage !== 'trend' && <><span>›</span><button onClick={() => setView({ metric: view.metric, stage: 'products' })}>Per produkt</button></>}{view.product && <><span>›</span><strong>{view.product}</strong></>}</nav> : <div><h1>{title}</h1>{dataset.source === 'upload' && <span className="dataset-name" data-testid="dataset-name">{dataset.name}</span>}</div>}
           <div className="workspace-actions">
-            {view ? <><button onClick={() => add(view.stage === 'trend' ? 'trend' : view.stage === 'orders' ? 'table' : 'bars', undefined, view.metric, view.product)}>Lägg på ytan</button><button onClick={exitDetail}>Tillbaka till ytan</button></> : <>
+            {view ? <><button className="toolbar-button" onClick={() => add(view.stage === 'trend' ? 'trend' : view.stage === 'orders' ? 'table' : 'bars', undefined, view.metric, view.product)}>Lägg på ytan</button><button className="toolbar-button" onClick={exitDetail}>Tillbaka till ytan</button></> : <>
               <select aria-label="Period" value={month} onChange={event => { setMonth(event.target.value); setCalculation(null) }}>{(months.length ? months : [month]).map(value => <option key={value} value={value}>{fmtMonth(value).charAt(0).toUpperCase() + fmtMonth(value).slice(1)}{partialMonths.includes(value) ? ' · pågående' : ''}</option>)}</select>
-              <button onClick={() => dispatch({ type: 'undo' })} disabled={!state.past.length}>Ångra</button>
-              <button onClick={() => { dispatch({ type: 'clear' }); setSelected(null) }}>Töm ytan</button>
-              <button className="reset-button" disabled={busy} onClick={() => void resetDemo()}>Återställ demon</button>
+              <button className="toolbar-button" onClick={() => dispatch({ type: 'undo' })} disabled={!state.past.length}>Ångra</button>
+              <button className="toolbar-button" onClick={() => { dispatch({ type: 'clear' }); setSelected(null) }}>Töm ytan</button>
+              <button className="reset-button toolbar-button" disabled={busy} onClick={() => void resetDemo()}>Återställ demon</button>
             </>}
           </div>
         </header>
