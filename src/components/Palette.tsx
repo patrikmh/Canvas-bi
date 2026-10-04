@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { CardKind } from '../canvas/layout'
+import { ThemeFooter } from '../theme/ThemePicker'
 
 export const paletteItems: { kind: CardKind; title: string; subtitle: string; icon: string }[] = [
   { kind: 'kpi', title: 'Nyckeltal', subtitle: 'Ett tal jämfört med i fjol', icon: '▰' },
@@ -23,7 +24,7 @@ export function Palette({ onAdd }: { onAdd: (kind: CardKind) => void }) {
       </button>)}
       <p className="palette-hint">Dra en komponent till ytan<br /><span>eller klicka för att lägga till.</span></p>
     </div>
-    <div className="palette-footer"><span className="local-dot" /> Data stannar i din webbläsare</div>
+    <div className="palette-footer has-theme-picker"><ThemeFooter /><span className="palette-local"><span className="local-dot" /> Data stannar i din webbläsare</span></div>
   </aside>
 }
 

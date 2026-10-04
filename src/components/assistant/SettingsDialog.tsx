@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { defaultSettings, LLM_STORAGE_KEY } from '../../analysis/llm'
 import type { LlmSettings } from '../../analysis/llm'
+import { ThemePicker } from '../../theme/ThemePicker'
 export function SettingsDialog({ settings, onSave, onClose }: { settings: LlmSettings; onSave: (value: LlmSettings) => void; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null)
   const [draft, setDraft] = useState(settings)
@@ -11,6 +12,7 @@ export function SettingsDialog({ settings, onSave, onClose }: { settings: LlmSet
   }
   return <dialog ref={ref} className="settings-dialog" data-testid="settings-llm" onCancel={onClose}>
     <header><h2>Inställningar</h2><button aria-label="Stäng inställningar" onClick={onClose}>×</button></header>
+    <ThemePicker />
     <p>Assistenten fungerar utan nyckel. Aktivera valfritt LLM-läge för fritext.</p>
     <form onSubmit={event => { event.preventDefault(); save(draft) }}>
       <label><input type="checkbox" checked={draft.enabled} onChange={event => setDraft({ ...draft, enabled: event.target.checked })} /> Använd LLM för fritext</label>
