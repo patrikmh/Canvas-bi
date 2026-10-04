@@ -11,7 +11,8 @@
     "e2e": "playwright test",
     "gate": "bash scripts/gate.sh",
     "preview": "vite preview",
-    "design:shots": "playwright test --config playwright.design.config.ts"
+    "design:shots": "playwright test --config playwright.design.config.ts",
+    "design:ui-shots": "playwright test --config playwright.design.config.ts uis.spec.ts"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.33.1-dev57.0",

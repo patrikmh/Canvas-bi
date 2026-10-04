@@ -1,0 +1,26 @@
+.ui-root { min-height: 100dvh; color: var(--ink); background: var(--surface); font-family: var(--font-body); font-size: max(14px, var(--fs-base)); line-height: 1.5; }
+.ui-chrome { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 32px; padding: 12px 24px; border-bottom: 1px solid var(--rule); }
+.ui-chrome p { margin: 0; }
+.ui-chrome a { margin-left: auto; color: var(--accent); }
+.ui-reference { max-width: 1100px; padding: 24px; margin: auto; }
+.ui-reference-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 24px; justify-content: space-between; }
+.ui-reference h1 { margin: 0; font: 600 28px var(--font-body); }
+.ui-reference h2 { max-width: 75ch; font: 600 22px var(--font-body); }
+.ui-reference p { max-width: 80ch; }
+.ui-reference table { border-collapse: collapse; width: 100%; margin: 16px 0; white-space: normal; }
+.ui-reference caption, .ui-reference th { text-align: left; }
+.ui-reference td, .ui-reference th { padding: 6px 12px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+.ui-reference [data-testid='ui-kpis'] td { text-align: right; font-variant-numeric: tabular-nums; }
+.ui-findings { padding-left: 24px; list-style: decimal; }
+.ui-findings li { margin: 18px 0; }
+.ui-review-actions { display: flex; gap: 8px; }
+.ui-reference textarea { display: block; width: min(100%, 650px); min-height: 80px; }
+.ui-reference input, .ui-reference select { max-width: 100%; padding: 5px; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); }
+.ui-reference form, .ui-reference section { margin: 16px 0; }
+.ui-citation { display: inline-block; line-height: 1.2; font-size: inherit; min-width: 18px; padding: 1px 4px; border: 0; background: none; text-decoration: underline; color: var(--accent); }
+.ui-approval .approval-badge { display: none; }
+.ui-approval .watch-card { border: 0; background: transparent; padding: 0; }
+.ui-bullet { width: 240px; max-width: 100%; font-family: var(--font-body); font-size: 10px; }
+.ui-root .chart { height: 100%; }
+.ui-reference details { margin: 24px 0; overflow-x: auto; }
+@media (max-width: 600px) { .ui-reference { padding: 16px; } .ui-chrome { padding: 12px 16px; } .ui-reference td, .ui-reference th { padding: 4px; } }
