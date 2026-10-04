@@ -1,0 +1,21 @@
+import { expect, test } from '@playwright/test'
+test('Karta: regional SQL, keyboard selection, product mix and no overflow', async ({ page }, info) => {
+  const external: string[] = []
+  page.on('request', request => { if (request.url().startsWith('http') && new URL(request.url()).hostname !== '127.0.0.1') external.push(request.url()) })
+  await page.goto('/?ui=07&fast=1')
+  await expect(page.getByTestId('ui-root')).toHaveAttribute('data-ready', 'true')
+  await expect(page.locator('.map-reading tbody tr')).toHaveCount(5)
+  await expect(page.locator('h1')).toContainText('Marginalfallet följer inte en region')
+  const region = page.getByTestId('map-region-Stockholm')
+  await region.focus(); await page.keyboard.press('Enter')
+  await expect(page.getByTestId('map-region-panel')).toContainText('Stockholm')
+  await expect(page.locator('.mix-list li')).toHaveCount(12)
+  await page.getByTestId('ui-citation-8').click()
+  await expect(page.getByTestId('calculation-drawer')).toContainText('Resultatrader (urval)')
+  await expect(page.getByTestId('calculation-drawer')).toContainText('Stockholm')
+  await expect(page.getByTestId('calculation-drawer')).toContainText("WHERE region='Stockholm'")
+  await page.getByRole('button', { name: 'Stäng beräkningen' }).click()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  expect(external).toEqual([])
+  if (info.project.name === 'mobile') await page.screenshot({ path: 'design-shots/out/u07-mobile.png', fullPage: true })
+})

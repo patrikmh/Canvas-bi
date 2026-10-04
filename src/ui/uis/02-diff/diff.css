@@ -1,0 +1,63 @@
+.ui-root .diff-ui { max-width: 1180px; margin: auto; padding: 36px 40px; font-family: var(--font-body); }
+.ui-root .diff-ui * { box-sizing: border-box; }
+.ui-root .diff-ui h1 { font: 600 clamp(30px, 3vw, 42px)/1.15 var(--font-body); margin: 8px 0 12px; letter-spacing: -.02em; }
+.ui-root .diff-ui h2 { font: 600 24px/1.3 var(--font-body); margin: 0 0 14px; }
+.ui-root .diff-ui h3 { font: 600 19px/1.35 var(--font-body); margin: 0; }
+.ui-root .diff-header { display: flex; justify-content: space-between; align-items: start; gap: 32px; }
+.ui-root .diff-header p { margin: 0 0 8px; }
+.ui-root .diff-header > p { white-space: nowrap; }
+.ui-root .diff-intro { font-size: 21px; margin: 8px 0 36px; max-width: 65ch; }
+.ui-root .diff-layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 48px; }
+.ui-root .diff-versions { align-self: start; position: sticky; top: 24px; font-size: 14px; }
+.ui-root .diff-versions h2 { font-size: 18px; }
+.ui-root .diff-ui button { font: inherit; padding: 8px 12px; min-height: 40px; border: 1px solid var(--rule); border-radius: 0; background: var(--surface); color: var(--ink); cursor: pointer; }
+.ui-root .diff-ui button:disabled { opacity: .5; cursor: default; }
+.ui-root .diff-ui :is(button, input, textarea):focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ui-root .diff-versions button { display: block; width: 100%; padding: 12px 14px; margin-bottom: 12px; text-align: left; border: 0; border-left: 2px solid var(--rule); background: transparent; }
+.ui-root .diff-versions button[aria-current='page'] { border-left-color: var(--ink); background: var(--surface-alt); }
+.ui-root .diff-versions span { display: block; color: var(--ink-muted); margin-top: 3px; }
+.ui-root .diff-versions > p { color: var(--ink-muted); }
+.ui-root .diff-key { border-top: 1px solid var(--rule); margin-top: 28px; padding-top: 14px; }
+.ui-root .diff-document { border-top: 3px solid var(--ink); padding-top: 24px; min-width: 0; }
+.ui-root .diff-doc-heading > p { font-size: 14px; color: var(--ink-muted); margin: 0; }
+.ui-root .diff-byline { font-size: 14px; color: var(--ink-muted); margin: 20px 0 32px; }
+.ui-root .diff-claim { margin: 0; padding: 24px 0; border-top: 1px solid var(--rule-soft); }
+.ui-root .diff-claim-top { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.ui-root .diff-claim-top > span:last-child { margin-left: auto; font-size: 13px; color: var(--ink-muted); }
+.ui-root .diff-number { font-variant-numeric: tabular-nums; }
+.ui-root .diff-ui .ui-citation { border: 0; background: transparent; padding: 2px 4px; min-height: 24px; font-size: 13px; color: var(--accent); }
+.ui-root .diff-claim > p { max-width: 70ch; margin: 12px 0; font-size: 18px; }
+.ui-root .diff-ui del { color: var(--ink-muted); text-decoration-thickness: 1px; }
+.ui-root .diff-ui ins { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.ui-root .diff-ui .diff-review-ink { color: #24517c; }
+.ui-root .diff-review-ink { padding-left: 14px; border-left: 2px solid currentColor; }
+.ui-root .diff-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.ui-root .diff-actions button[aria-pressed='true'] { border: 2px solid var(--ink); }
+.ui-root .diff-ui :is(textarea, input, select) { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); padding: 8px; max-width: 100%; }
+.ui-root .diff-edit-form { margin-top: 16px; }
+.ui-root .diff-edit-form textarea { display: block; width: 100%; min-height: 90px; margin: 8px 0; }
+.ui-root .diff-edit-form button { margin-right: 8px; }
+.ui-root .diff-watch { border-top: 1px solid var(--rule); padding: 24px 0; }
+.ui-root .diff-merge { border-top: 2px solid var(--ink); padding: 24px 0; }
+.ui-root .diff-merge label { display: inline-flex; flex-wrap: wrap; gap: 8px; margin: 0 8px 8px 0; align-items: center; }
+.ui-root .diff-merge button { background: var(--ink); color: var(--surface); }
+.ui-root .diff-limits { font-size: 14px; color: var(--ink-muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+.ui-root .diff-log { margin: 44px 0 0 258px; }
+.ui-root .diff-log h2 { font-size: 20px; }
+.ui-root .diff-log ul { padding: 0; list-style: none; }
+.ui-root .diff-log li { display: grid; grid-template-columns: 75px 190px minmax(0, 1fr); gap: 12px; font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); overflow-wrap: anywhere; }
+.ui-root .diff-log strong { font-weight: 500; }
+@media (max-width: 700px) {
+  .ui-root .diff-ui { padding: 24px 16px; }
+  .ui-root .diff-header { display: block; }
+  .ui-root .diff-intro { font-size: 19px; margin-bottom: 24px; }
+  .ui-root .diff-layout { display: block; }
+  .ui-root .diff-versions { position: static; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .ui-root .diff-versions h2, .ui-root .diff-versions > p { width: 100%; }
+  .ui-root .diff-versions button { flex: 1; min-width: 130px; }
+  .ui-root .diff-key { display: none; }
+  .ui-root .diff-claim-top > span:last-child { width: 100%; margin-left: 24px; }
+  .ui-root .diff-log { margin-left: 0; }
+  .ui-root .diff-log li { grid-template-columns: 65px minmax(0, 1fr); }
+  .ui-root .diff-log li > span { grid-column: 2; }
+}

@@ -1,0 +1,38 @@
+import { expect, test } from '@playwright/test'
+test('Vykort: flip, preserve original during review, mono and A6 printing', async ({ page }, info) => {
+  await page.goto('/?ui=09&fast=1')
+  await expect(page.getByTestId('ui-root')).toHaveAttribute('data-ready', 'true')
+  await expect(page.getByTestId('postcard-front')).toBeVisible()
+  await page.getByTestId('postcard-flip').click()
+  await expect(page.getByTestId('postcard-back')).toBeVisible()
+  await expect(page.getByTestId('postcard-week')).toBeVisible()
+  await page.getByTestId('ui-accept-1').click()
+  await expect(page.getByTestId('ui-memo-status')).toContainText('Granskas')
+  await page.getByTestId('ui-edit-1').click()
+  await expect(page.getByTestId('ui-save-review')).toBeDisabled()
+  await page.getByTestId('ui-review-reason').fill('Kontrollera leverantörens nästa prislista')
+  await page.getByTestId('ui-save-review').click()
+  await expect(page.getByTestId('ui-review-note-1')).toContainText('Original bevarat')
+  await page.getByTestId('ui-accept-1').click()
+  await expect(page.getByTestId('ui-review-note-1')).toContainText('Kontrollera leverantörens nästa prislista')
+  for (let number = 2; number <= 5; number++) await page.getByTestId(`ui-accept-${number}`).click()
+  await page.getByTestId('ui-reviewer').fill('Patrik Andersson')
+  await page.getByTestId('ui-signoff-submit').click()
+  await expect(page.getByTestId('ui-signoff')).toContainText('Granskad av: Patrik Andersson')
+  await page.getByTestId('postcard-mono').click()
+  await expect(page.locator('.ui-postcard')).toHaveClass(/postcard-mono/)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  if (info.project.name === 'mobile') await page.screenshot({ path: 'design-shots/out/u09-mobile.png', fullPage: true })
+  else {
+    await page.emulateMedia({ media: 'print' })
+    await expect(page.getByTestId('postcard-front')).toBeVisible()
+    await expect(page.getByTestId('postcard-back')).toBeVisible()
+    await expect(page.locator('.print-original')).toHaveCount(5)
+    await expect(page.locator('.print-original').first()).toBeVisible()
+    expect(await page.locator('.postcard-byline').evaluate(element => element.getBoundingClientRect().bottom <= element.closest('article')!.getBoundingClientRect().bottom)).toBe(true)
+    const pdf = await page.pdf({ path: '/tmp/ui3-postcard.pdf', preferCSSPageSize: true, printBackground: true })
+    const boxes = [...pdf.toString('latin1').matchAll(/\/MediaBox\s*\[0 0 ([\d.]+) ([\d.]+)\]/g)]
+    expect(boxes).toHaveLength(2)
+    for (const box of boxes) { expect(Number(box[1])).toBeCloseTo(419.53, 0); expect(Number(box[2])).toBeCloseTo(297.64, 0) }
+  }
+})

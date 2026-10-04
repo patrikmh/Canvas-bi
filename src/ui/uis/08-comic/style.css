@@ -1,0 +1,44 @@
+.ui-root .ui-comic { max-width: 1280px; margin: auto; padding: 28px 36px 60px; font-family: var(--font-body); }
+.ui-root .ui-comic * { box-sizing: border-box; }
+.ui-root .ui-comic h1 { font: 600 42px/1.1 var(--font-body); max-width: 28ch; margin: 12px 0 20px; }
+.ui-root .ui-comic h2 { font: 600 25px/1.2 var(--font-body); }
+.ui-root .ui-comic h3 { font: 600 20px/1.25 var(--font-body); }
+.ui-root .ui-comic p { max-width: 76ch; }
+.ui-root .ui-comic button, .ui-root .ui-comic input, .ui-root .ui-comic select, .ui-root .ui-comic textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; padding: 6px 12px; max-width: 100%; }
+.ui-root .ui-comic button { min-height: 42px; cursor: pointer; }
+.ui-root .ui-comic button:disabled { opacity: .55; cursor: default; }
+.ui-root .ui-comic :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ui-root .ui-comic .toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.ui-root .ui-comic .method-note { color: var(--ink-muted); font-size: 16px; }
+.ui-root .ui-comic .local-review { max-width: 880px; padding-top: 20px; }
+.ui-root .ui-comic .local-review ol { padding-left: 24px; }
+.ui-root .ui-comic .local-review li { margin: 16px 0; }
+.ui-root .ui-comic .review-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.ui-root .ui-comic textarea { display: block; width: 100%; min-height: 90px; margin: 8px 0; }
+.ui-root .ui-comic .ui-approval { padding: 16px 0; border-block: 1px solid var(--rule); margin: 24px 0; }
+.ui-root .ui-comic [data-testid='ui-signoff'] { font-size: 16px; }
+.ui-root .ui-comic [data-testid='ui-signoff'] form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.ui-root .ui-comic .audit { font-size: 14px; margin-top: 24px; overflow-wrap: anywhere; }
+.ui-root .ui-comic .audit li { margin: 5px 0; }
+.ui-root .ui-comic .watch-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 600px) { .ui-root .ui-comic { padding: 20px 16px 40px; } .ui-root .ui-comic h1 { font-size: 32px; } .ui-root .ui-comic .toolbar { align-items: start; } .ui-root .ui-comic input { width: 100%; } }
+.ui-root .ui-comic { max-width: 1440px; }
+.ui-root .ui-comic .comic-deck { font-size: 20px; max-width: 94ch; }
+.ui-root .ui-comic .comic-navigation { display: flex; gap: 8px; flex-wrap: wrap; margin: 24px 0 12px; }
+.ui-root .ui-comic .comic-navigation button { background: none; border: 0; padding: 4px 10px; font-size: 17px; }
+.ui-root .ui-comic .comic-navigation [aria-current] { text-decoration: underline; text-underline-offset: 7px; font-weight: 600; }
+.ui-root .ui-comic .comic-track { position: relative; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; gap: 10px; border-block: 1px solid var(--rule); padding-block: 10px; }
+.ui-root .ui-comic .comic-panel { flex: 0 0 calc((100% - 20px)/3); min-width: 0; height: 510px; padding: 12px 18px 20px; border-right: 1px solid var(--rule); scroll-snap-align: start; overflow-y: auto; }
+.ui-root .ui-comic .comic-panel h2 { margin: 4px 0 20px; font-size: 27px; }
+.ui-root .ui-comic .comic-panel h2 span { color: var(--ink-muted); margin-right: 6px; }
+.ui-root .ui-comic .panel-caption { font-size: 18px; line-height: 1.35; margin: 18px 0 0; }
+.ui-root .ui-comic .action-chart { height: 290px; display: flex; flex-direction: column; justify-content: center; }
+.ui-root .ui-comic .action-chart .ui-bullet { width: 100%; }
+.ui-root .ui-comic .decision-chart .ui-bullet { width: 100%; }
+.ui-root .ui-comic .comic-panel .local-review { font-size: 17px; }
+.ui-root .ui-comic .comic-panel .review-buttons button { padding: 4px 8px; font-size: 16px; }
+.ui-root .ui-comic .comic-controls { margin-top: 14px; }
+@media (max-width: 1000px) and (min-width: 701px) { .ui-root .ui-comic .comic-panel { flex-basis: calc((100% - 10px)/2); } }
+@media (max-width: 700px) { .ui-root .ui-comic .comic-panel { flex-basis: 100%; height: 590px; border-right: 0; padding: 12px 8px 24px; } .ui-root .ui-comic .comic-track { gap: 0; } .ui-root .ui-comic .comic-navigation { gap: 2px; } .ui-root .ui-comic .comic-navigation button { font-size: 16px; } .ui-root .ui-comic .comic-controls p { order: -1; width: 100%; margin: 0; } }
+
+.ui-root .ui-comic button.ui-citation { min-height: 28px; padding: 1px 4px; border: 0; border-radius: 0; background: none; font-size: .85em; }

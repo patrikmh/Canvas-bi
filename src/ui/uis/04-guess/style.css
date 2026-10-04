@@ -1,0 +1,37 @@
+.ui-root .ui-guess { max-width: 1060px; margin: auto; padding: 24px 40px 64px; }
+.ui-root .ui-guess .guess-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; }
+.ui-root .ui-guess h1 { font-size: 42px; font-weight: 600; margin: 0 0 16px; }
+.ui-root .ui-guess .guess-heading p { font-size: 16px; color: var(--ink-muted); }
+.ui-root .ui-guess > h2 { font-size: 29px; max-width: 32ch; margin: 16px 0; }
+.ui-root .ui-guess .guess-intro { margin: 0 0 20px; font-size: 16px; max-width: 90ch; }
+.ui-root .ui-guess .guess-legend { display: flex; gap: 24px; flex-wrap: wrap; font-size: 16px; }
+.ui-root .ui-guess .guess-legend span::before { content: ''; display: inline-block; width: 28px; border-top: 2px solid #526b81; margin-right: 8px; vertical-align: middle; }
+.ui-root .ui-guess .guess-legend .guess-actual::before { border-color: #000; }
+.ui-root .ui-guess .guess-legend .guess-gap::before { border: 0; background: #dce2e7; height: 10px; }
+.ui-root .ui-guess svg { width: 100%; display: block; touch-action: none; user-select: none; cursor: crosshair; font-family: inherit; font-size: 14px; color: var(--ink-muted); }
+.ui-root .ui-guess svg.revealed { touch-action: auto; cursor: default; }
+.ui-root .ui-guess svg text { fill: var(--ink-muted); }
+.ui-root .ui-guess .guide, .ui-root .ui-guess .column { stroke: var(--rule); stroke-opacity: .35; stroke-width: .7; }
+.ui-root .ui-guess .baseline { stroke: var(--ink); stroke-width: 1; }
+.ui-root .ui-guess .pencil-line { fill: none; stroke: #526b81; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 1; }
+.ui-root .ui-guess .pencil-dot { fill: #526b81; }
+.ui-root .ui-guess .actual-line { fill: none; stroke: #000; stroke-width: 2.5; }
+.ui-root .ui-guess .actual-dot { fill: #000; }
+.ui-root .ui-guess .gap-band { fill: #dce2e7; }
+.ui-root .ui-guess fieldset { border: 0; padding: 0; margin: 0 0 20px; }
+.ui-root .ui-guess legend { font-size: 16px; margin-bottom: 8px; }
+.ui-root .ui-guess .guess-inputs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.ui-root .ui-guess .guess-inputs label { display: grid; gap: 4px; font-size: 16px; }
+.ui-root .ui-guess .guess-inputs input { width: 100%; }
+.ui-root .ui-guess .guess-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.ui-root .ui-guess .guess-controls span { font-size: 16px; }
+.ui-root .ui-guess figcaption { margin: 12px 0 0; padding: 12px 0; border-top: 1px solid var(--rule); }
+@media (max-width: 600px) {
+ .ui-root .ui-guess { padding: 24px 20px 48px; }
+ .ui-root .ui-guess .guess-heading { display: block; }
+ .ui-root .ui-guess h1 { font-size: 34px; }
+ .ui-root .ui-guess > h2 { font-size: 26px; }
+ .ui-root .ui-guess svg { min-height: 200px; }
+ .ui-root .ui-guess .guess-inputs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+ .ui-root .ui-guess .guess-legend { gap: 8px 16px; font-size: 14px; }
+}

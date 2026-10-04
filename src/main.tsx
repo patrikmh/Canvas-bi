@@ -3,11 +3,15 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { initializeTheme } from './theme'
+import { requestedUi, UiRoot } from './ui'
+import { initializeUiTheme } from './ui/theme'
 
-initializeTheme()
+const ui = requestedUi()
+if (ui) initializeUiTheme(ui)
+else initializeTheme()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    {ui ? <UiRoot def={ui} /> : <App />}
   </StrictMode>,
 )
