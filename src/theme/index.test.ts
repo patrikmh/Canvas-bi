@@ -18,7 +18,7 @@ test('readThemeId parses supported IDs and defaults missing or invalid values', 
 })
 
 test('initialization resolves unknown themes and sets the root before render', () => {
-  window.history.replaceState({}, '', '/?theme=03')
+  window.history.replaceState({}, '', '/?theme=88')
   initializeTheme()
   expect(getTheme().id).toBe('00')
   expect(document.documentElement.dataset.theme).toBe('00')
