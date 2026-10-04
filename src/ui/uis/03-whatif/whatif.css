@@ -1,0 +1,52 @@
+.ui-root .whatif-ui { max-width: 1130px; margin: auto; padding: 36px 40px; font-family: var(--font-body); }
+.ui-root .whatif-ui * { box-sizing: border-box; }
+.ui-root .whatif-ui h1 { font: 600 clamp(32px, 3.5vw, 40px)/1.15 var(--font-body); letter-spacing: -.025em; margin: 10px 0 20px; }
+.ui-root .whatif-ui h2 { font: 600 24px/1.3 var(--font-body); margin: 0 0 16px; }
+.ui-root .whatif-ui h3 { font: 600 19px/1.3 var(--font-body); margin: 28px 0 14px; }
+.ui-root .whatif-header { margin-bottom: 30px; }
+.ui-root .whatif-header > p:first-child { margin: 0; color: var(--ink-muted); }
+.ui-root .whatif-lead { max-width: 62ch; font-size: 21px; }
+.ui-root .whatif-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; }
+.ui-root .whatif-memo { min-width: 0; }
+.ui-root .whatif-ui button { font: inherit; min-height: 40px; padding: 8px 12px; border: 1px solid var(--rule); border-radius: 3px; color: var(--ink); background: var(--surface); cursor: pointer; }
+.ui-root .whatif-ui button:disabled { opacity: .5; cursor: default; }
+.ui-root .whatif-ui :is(button, input, textarea):focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ui-root .whatif-prose { font-size: 24px; line-height: 1.5; margin: 18px 0; }
+.ui-root .whatif-ui .ui-citation { border: 0; background: transparent; padding: 2px 4px; min-height: 24px; font-size: 13px; color: var(--accent); }
+.ui-root .whatif-ui .whatif-number { border: 0; border-bottom: 2px solid var(--accent); border-radius: 0; color: var(--accent); padding: 0 3px; background: transparent; font-weight: 600; font-variant-numeric: tabular-nums; cursor: ew-resize; touch-action: pan-y; user-select: none; min-width: 58px; }
+.ui-root .whatif-help { color: var(--ink-muted); font-size: 14px; margin-bottom: 28px; }
+.ui-root .whatif-result { border-top: 2px solid var(--ink); padding-top: 24px; }
+.ui-root .whatif-result h2 { font-size: 29px; }
+.ui-root .whatif-assumptions { font-size: 14px; color: var(--ink-muted); }
+.ui-root .whatif-plot { margin: 28px 0 12px; max-width: 560px; }
+.ui-root .whatif-plot-label { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; }
+.ui-root .whatif-plot .ui-bullet { width: 100%; height: 100px; }
+.ui-root .whatif-band-label { margin: 12px 0 4px; font-size: 16px; font-weight: 600; }
+.ui-root .whatif-plot > svg:last-child { display: block; width: 100%; font-family: inherit; font-size: 14px; }
+.ui-root .whatif-plot > svg { display: block; width: 100%; font-family: inherit; font-size: 14px; }
+.ui-root .whatif-calculated { display: block; font-size: 14px; color: var(--ink-muted); }
+.ui-root .whatif-ui .whatif-primary { background: var(--accent); color: var(--surface); border-color: var(--accent); margin: 12px 10px 12px 0; }
+.ui-root .whatif-ui .whatif-reset { border: 0; text-decoration: underline; }
+.ui-root .whatif-notes { border-left: 1px solid var(--rule); padding-left: 24px; align-self: start; font-size: 15px; }
+.ui-root .whatif-notes h2 { font-size: 19px; }
+.ui-root .whatif-ui :is(input, textarea, select) { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); padding: 8px; max-width: 100%; }
+.ui-root .whatif-ui textarea { width: 100%; display: block; min-height: 85px; margin: 8px 0; }
+.ui-root .whatif-proposal, .ui-root .whatif-findings { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--rule); }
+.ui-root .whatif-proposal { padding: 24px; background: var(--surface-alt); }
+.ui-root .whatif-finding { padding: 14px 0; border-bottom: 1px solid var(--rule-soft); }
+.ui-root .whatif-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.ui-root .whatif-actions button[aria-pressed='true'] { border: 2px solid var(--accent); }
+.ui-root .whatif-note { color: var(--accent); }
+.ui-root .whatif-log { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--rule); }
+.ui-root .whatif-log ul { padding: 0; list-style: none; }
+.ui-root .whatif-log li { padding: 10px 0; border-bottom: 1px solid var(--rule-soft); font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .ui-root .whatif-ui { padding: 24px 16px; }
+  .ui-root .whatif-layout { display: flex; flex-direction: column; gap: 32px; }
+  .ui-root .whatif-header { margin-bottom: 28px; }
+  .ui-root .whatif-prose { font-size: 23px; }
+  .ui-root .whatif-result h2 { font-size: 26px; }
+  .ui-root .whatif-notes { border-left: 0; border-top: 1px solid var(--rule); padding: 24px 0 0; width: 100%; }
+  .ui-root .whatif-proposal { padding: 18px; }
+  .ui-root .whatif-plot .ui-bullet { height: auto; }
+}
