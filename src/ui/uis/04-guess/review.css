@@ -1,0 +1,40 @@
+.ui-root .ui-guess { font-family: "Source Sans 3", sans-serif; font-size: 18px; line-height: 1.5; }
+.ui-root .ui-guess h1, .ui-root .ui-guess h2, .ui-root .ui-guess h3 { font-family: inherit; line-height: 1.15; letter-spacing: 0; }
+.ui-root .ui-guess h2 { font-size: 28px; font-weight: 600; }
+.ui-root .ui-guess h3 { font-size: 21px; font-weight: 600; }
+.ui-root .ui-guess button, .ui-root .ui-guess input, .ui-root .ui-guess select, .ui-root .ui-guess textarea { font: inherit; color: var(--ink); max-width: 100%; }
+.ui-root .ui-guess button { min-height: 44px; padding: 8px 16px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); cursor: pointer; }
+.ui-root .ui-guess button:disabled { opacity: .55; cursor: default; }
+.ui-root .ui-guess button[aria-pressed='true'] { text-decoration: underline; text-underline-offset: 4px; }
+.ui-root .ui-guess .primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.ui-root .ui-guess input, .ui-root .ui-guess select, .ui-root .ui-guess textarea { min-height: 44px; padding: 8px; background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; min-width: 0; }
+.ui-root .ui-guess :focus-visible { outline: 3px solid #2F5D8A; outline-offset: 3px; }
+.ui-root .ui-guess p { max-width: 70ch; }
+.ui-root .ui-guess figure { margin: 0; min-width: 0; }
+.ui-root .ui-guess .local-review { padding-top: 32px; max-width: 820px; }
+.ui-root .ui-guess .local-review > ol { padding-left: 28px; }
+.ui-root .ui-guess .local-review > ol > li { padding: 4px 0 20px 8px; }
+.ui-root .ui-guess .review-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ui-root .ui-guess .local-review textarea { display: block; width: 100%; min-height: 100px; margin: 8px 0; }
+.ui-root .ui-guess .local-review ins { text-decoration: underline; text-underline-offset: 3px; }
+.ui-root .ui-guess .local-review [data-testid='ui-signoff'] { margin: 36px 0; }
+.ui-root .ui-guess .local-review [data-testid='ui-signoff'] form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.ui-root .ui-guess .local-review [data-testid='ui-signoff'] label { display: grid; gap: 4px; }
+.ui-root .ui-guess .ui-citation { min-height: 28px; padding: 2px 6px; border: 0; background: transparent; color: var(--accent); }
+.ui-root .ui-guess .activity-log { margin-top: 32px; }
+.ui-root .ui-guess summary { cursor: pointer; min-height: 44px; padding-top: 8px; }
+.ui-root .ui-guess .activity-log ul { list-style: none; padding: 0; }
+.ui-root .ui-guess .activity-log li { display: grid; grid-template-columns: 150px 210px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: 15px; overflow-wrap: anywhere; }
+.ui-root .ui-guess .activity-log strong { font-weight: 600; }
+.ui-root .ui-guess .watch-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ui-root .ui-guess .watch-card form { display: grid; gap: 12px; }
+.ui-root .ui-guess .watch-card form label { display: grid; gap: 4px; }
+.ui-root .ui-guess .byline { color: var(--ink-muted); font-size: 16px; }
+@media (max-width: 600px) {
+ .ui-root .ui-guess { font-size: 18px; }
+ .ui-root .ui-guess h2 { font-size: 25px; }
+ .ui-root .ui-guess .activity-log li { grid-template-columns: 1fr; gap: 2px; }
+ .ui-root .ui-guess .local-review > ol { padding-left: 22px; }
+ .ui-root .ui-guess .local-review > ol > li { padding-left: 2px; }
+}
+
