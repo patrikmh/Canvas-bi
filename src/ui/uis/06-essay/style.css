@@ -1,0 +1,46 @@
+.ui-root .ui-essay { max-width: 1240px; padding: 48px 40px 64px; margin: auto; }
+.ui-root .ui-essay h1 { font-size: 56px; font-weight: 600; margin: 0 0 24px; }
+.ui-root .ui-essay .essay-lead { max-width: 1000px; margin-bottom: 56px; }
+.ui-root .ui-essay .essay-deck { font-size: 23px; line-height: 1.5; max-width: 66ch; }
+.ui-root .ui-essay .essay-limit { font-size: 16px; color: var(--ink-muted); }
+.ui-root .ui-essay nav { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.ui-root .ui-essay .essay-body { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 72px; align-items: start; position: relative; }
+.ui-root .ui-essay .essay-prose { grid-column: 1; grid-row: 1; }
+.ui-root .ui-essay .essay-prose section { min-height: 590px; padding: 12px 0 80px; scroll-margin-top: 80px; }
+.ui-root .ui-essay .essay-prose h2 { font-size: 31px; margin: 0 0 24px; }
+.ui-root .ui-essay .essay-prose p { margin: 0 0 24px; }
+.ui-root .ui-essay .essay-figure { grid-column: 2; grid-row: 1; position: sticky; top: 64px; padding: 16px 0; background: var(--surface); min-width: 0; }
+.ui-root .ui-essay .essay-figure figcaption > p { margin: 0 0 8px; font-size: 16px; color: var(--ink-muted); }
+.ui-root .ui-essay .essay-figure h3 { font-size: 25px; margin: 0 0 20px; }
+.ui-root .ui-essay .essay-figure > p, .ui-root .ui-essay .essay-figure [data-testid='essay-waterfall'] > p { font-size: 16px; }
+.ui-root .ui-essay .essay-number { padding: 0 2px; min-height: 32px; border: 0; border-bottom: 1px solid var(--accent); border-radius: 0; color: var(--accent); background: var(--surface-alt); text-decoration: none; }
+.ui-root .ui-essay .essay-source { color: var(--ink-muted); }
+.ui-root .ui-essay .essay-figure-tabs { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 16px; }
+.ui-root .ui-essay .essay-figure-tabs a { color: var(--accent); text-underline-offset: 4px; padding: 8px 0; }
+.ui-root .ui-essay .essay-economics p { font-size: 16px; }
+.ui-root .ui-essay .essay-economics h4 { margin: 20px 0 10px; font-size: 19px; font-weight: 600; }
+.ui-root .ui-essay .essay-economics svg { width: 100%; font: 15px 'Source Sans 3', sans-serif; }
+.ui-root .ui-essay .essay-economics svg text { fill: var(--ink); }
+.ui-root .ui-essay .essay-decision { margin-top: 24px; padding-top: 32px; border-top: 1px solid var(--rule); scroll-margin-top: 40px; max-width: 820px; }
+.ui-root .ui-essay .essay-decision > h2 { font-size: 36px; }
+@media (max-width: 760px) {
+ .ui-root .ui-essay { padding: 32px 20px 48px; }
+ .ui-root .ui-essay h1 { font-size: 38px; }
+ .ui-root .ui-essay .essay-deck { font-size: 21px; }
+ .ui-root .ui-essay .essay-body { display: flex; flex-direction: column; gap: 24px; }
+ .ui-root .ui-essay .essay-figure { order: -1; top: 0; z-index: 2; width: 100%; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+ .ui-root .ui-essay .essay-figure h3 { font-size: 19px; margin: 0 0 8px; }
+ .ui-root .ui-essay .essay-figure figcaption > p { font-size: 14px; margin: 0; }
+ .ui-root .ui-essay .essay-figure .chart { max-height: 190px; }
+ .ui-root .ui-essay .essay-figure > div:has(> .chart) { height: 190px !important; }
+ .ui-root .ui-essay .essay-figure [data-testid='essay-waterfall'] > div, .ui-root .ui-essay .essay-figure [data-testid='essay-waterfall'] .chart { height: 210px !important; max-height: 210px; }
+ .ui-root .ui-essay .essay-figure [data-testid='essay-waterfall'] > p { font-size: 14px; margin: 6px 0; }
+ .ui-root .ui-essay .essay-source { margin: 4px 0; font-size: 14px !important; }
+ .ui-root .ui-essay .essay-figure-tabs { display: none; }
+ .ui-root .ui-essay .essay-prose section { min-height: 0; padding: 16px 0 64px; scroll-margin-top: 350px; }
+ .ui-root .ui-essay .essay-prose h2 { font-size: 28px; }
+ .ui-root .ui-essay .essay-economics { max-height: 210px; overflow-y: auto; }
+ .ui-root .ui-essay .essay-economics p { font-size: 14px; margin: 4px 0; }
+ .ui-root .ui-essay .essay-economics h4 { margin: 8px 0; }
+}
+@media (prefers-reduced-motion: reduce) { .ui-root .ui-essay * { scroll-behavior: auto; animation: none; transition: none; } }

@@ -1,0 +1,56 @@
+.ui-root .ui-search { max-width: 1140px; margin: auto; padding: 80px 40px 64px; }
+.ui-root .ui-search h1 { font-size: 52px; font-weight: 600; margin: 0 0 16px; }
+.ui-root .ui-search header p { color: var(--ink-muted); margin-bottom: 32px; }
+.ui-root .ui-search .search-form { max-width: 940px; }
+.ui-root .ui-search .search-form > label { display: block; margin-bottom: 8px; }
+.ui-root .ui-search .search-form > div { display: flex; gap: 12px; }
+.ui-root .ui-search .search-form input { flex: 1; min-width: 0; font-size: 22px; padding: 14px; }
+.ui-root .ui-search .search-form button { padding: 12px 24px; }
+.ui-root .ui-search .search-suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; margin-top: 28px; max-width: 940px; }
+.ui-root .ui-search .search-suggestions button { text-align: left; padding: 10px 0; border: 0; background: none; text-decoration: underline; text-underline-offset: 5px; }
+.ui-root .ui-search.has-answer { padding-top: 32px; }
+.ui-root .ui-search.has-answer h1 { font-size: 36px; }
+.ui-root .ui-search.has-answer header p, .ui-root .ui-search.has-answer .search-suggestions { display: none; }
+.ui-root .ui-search.has-answer .search-suggestions { margin-top: 16px; font-size: 16px; }
+.ui-root .ui-search .search-answer { margin-top: 40px; }
+.ui-root .ui-search .search-sentence { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.ui-root .ui-search .search-sentence label { display: grid; gap: 6px; }
+.ui-root .ui-search .search-sentence label span { font-size: 15px; color: var(--ink-muted); }
+.ui-root .ui-search .sentence-dot { margin-bottom: 9px; }
+.ui-root .ui-search .search-sentence select { border-width: 0 0 1px; border-radius: 0; padding: 8px 24px 8px 0; }
+.ui-root .ui-search .search-current { font-size: 16px; color: var(--ink-muted); margin: 16px 0 32px; }
+.ui-root .ui-search .search-current button { border: 0; padding: 4px 8px; text-decoration: underline; }
+.ui-root .ui-search .search-answer > h2 { font-size: 28px; max-width: 55ch; margin-bottom: 32px; }
+.ui-root .ui-search .search-figure h3 { margin: 0 0 8px; }
+.ui-root .ui-search .search-figure figcaption > p { margin: 8px 0; font-size: 16px; }
+.ui-root .ui-search .search-key { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.ui-root .ui-search .search-key > span:first-child::before, .ui-root .ui-search .search-key > span:nth-child(2)::before { content: ''; display: inline-block; width: 24px; border-top: 2px solid var(--ink); margin-right: 8px; vertical-align: middle; }
+.ui-root .ui-search .search-key > span:nth-child(2)::before { border-color: var(--rule); }
+.ui-root .ui-search .search-row, .ui-root .ui-search .search-row-head { display: grid; grid-template-columns: 220px minmax(0, 1fr) 190px; align-items: center; gap: 20px; }
+.ui-root .ui-search .search-row-head { font-size: 15px; padding: 16px 0; }
+.ui-root .ui-search .search-row { border-top: 1px solid #e2e2e2; min-height: 90px; }
+.ui-root .ui-search .search-row p { margin: 0; }
+.ui-root .ui-search .search-value { display: grid; gap: 4px; }
+.ui-root .ui-search .search-value span { color: var(--ink-muted); font-size: 16px; }
+.ui-root .ui-search .search-row svg { width: 100%; max-height: 96px; font: 12px 'Source Sans 3', sans-serif; }
+.ui-root .ui-search .search-row svg text { fill: var(--ink-muted); }
+.ui-root .ui-search .current-line { fill: none; stroke: var(--ink); stroke-width: 2; }
+.ui-root .ui-search .previous-line { fill: none; stroke: #a6a6a6; stroke-width: 2; }
+.ui-root .ui-search .search-explain { margin: 32px 0; display: flex; align-items: start; gap: 24px; }
+.ui-root .ui-search .search-explain p { margin: 0; font-size: 16px; max-width: 55ch; }
+@media (max-width: 700px) {
+ .ui-root .ui-search, .ui-root .ui-search.has-answer { padding: 32px 20px 48px; }
+ .ui-root .ui-search h1, .ui-root .ui-search.has-answer h1 { font-size: 36px; }
+ .ui-root .ui-search .search-form input { font-size: 18px; padding: 10px; }
+ .ui-root .ui-search .search-form button { padding: 10px 16px; }
+ .ui-root .ui-search .search-suggestions { grid-template-columns: 1fr; gap: 4px; }
+ .ui-root .ui-search .search-sentence { display: grid; grid-template-columns: 1fr; }
+ .ui-root .ui-search .sentence-dot { display: none; }
+ .ui-root .ui-search .search-sentence select { width: 100%; }
+ .ui-root .ui-search .search-row-head { display: none; }
+ .ui-root .ui-search .search-row { grid-template-columns: 1fr; gap: 4px; padding: 16px 0; }
+ .ui-root .ui-search .search-row svg { max-height: none; }
+ .ui-root .ui-search .search-value { display: flex; flex-wrap: wrap; gap: 8px; }
+ .ui-root .ui-search .search-explain { display: block; }
+ .ui-root .ui-search .search-explain p { margin-top: 12px; }
+}
