@@ -1,0 +1,133 @@
+/* A working command surface, dense function panels and an actual run/status line. */
+:root[data-theme='09'] {
+  --bg: #000000; --workspace-bg: #000000; --surface: #000000; --surface-alt: #161616;
+  --ink: #FFA028; --ink-control: #FFA028; --ink-number: #FFA028;
+  --ink-muted: #bdbdbd; --ink-secondary: #bdbdbd; --ink-tertiary: #bdbdbd; --ink-faint: #bdbdbd;
+  --accent: #0068FF; --accent-hover: #0059db; --accent-selection: #0068FF;
+  --good: #4AF6C3; --bad: #FF433D; --trace-good: #4AF6C3;
+  --rule: #454545; --rule-card: #454545; --rule-soft: #343434; --rule-hover: #bdbdbd;
+  --banner-bg: #161616; --banner-ink: #FFA028; --banner-rule: #454545;
+  --palette-hover: #252525; --icon-rule: #bdbdbd; --ink-handle: #bdbdbd; --ink-toolbar: #FFA028;
+  --ink-breadcrumb: #bdbdbd; --local-dot: #bdbdbd; --rule-bad: #FF433D;
+  --table-header-bg: #161616; --approval-bg: #161616; --approval-ink: #FFA028;
+  --approval-badge-bg: transparent; --confidence-bg: #161616; --warning-bg: #161616;
+  --warning-ink: #FFA028; --warning-rule: #FFA028; --upload-warning-bg: #161616;
+  --assumption-ink: #FFA028; --dropzone-rule: #bdbdbd; --backdrop-bg: #00000099;
+  --font-body: 'IBM Plex Sans Condensed', sans-serif; --font-num: 'IBM Plex Mono', monospace;
+  --font-display: 'IBM Plex Sans Condensed', sans-serif; --font-display-short: 'IBM Plex Sans Condensed', sans-serif;
+  --font-code: 'IBM Plex Mono', monospace; --numeric-variant: tabular-nums;
+  --fs-base: 11px; --fs-sm: 11px; --fs-xs: 10px; --gap: 6px;
+  --radius-card: 0; --radius-control: 0; --radius-20px: 0; --radius-9px: 0; --radius-8px: 0;
+  --radius-14px: 0; --radius-10px: 0; --radius-4px: 0; --radius-7px: 0; --radius-30px: 0; --radius-panel: 0;
+  --shadow-card: none; --shadow-card-hover: none; --shadow-selected: none; --shadow-selected-hover: none;
+  --shadow-drag: none; --shadow-drawer: none; --shadow-upload: none; --shadow-assistant-toggle: none;
+  --shadow-assistant-panel: none; --canvas-background: none; --pad-card: 8px;
+}
+:root[data-theme='09'] .demo-banner { justify-content: flex-start; padding-left: 10px; height: 28px; letter-spacing: 0; font: 10px 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .app-shell { height: calc(100dvh - 52px); }
+:root[data-theme='09'] .canvas-card, :root[data-theme='09'] .detail-view, :root[data-theme='09'] .calculation-drawer { animation: none; transition: none; }
+:root[data-theme='09'] button { padding: 5px 8px; }
+:root[data-theme='09'] button.primary { color: #ffffff; }
+:root[data-theme='09'] .workspace-scroll { padding: 8px 10px 20px; scroll-behavior: auto; }
+:root[data-theme='09'] .workspace-header { padding: 10px; min-height: 52px; flex-wrap: wrap; gap: 6px; background: #161616; }
+:root[data-theme='09'] .workspace-header h1 { font: 600 21px 'IBM Plex Sans Condensed', sans-serif; letter-spacing: -.4px; }
+:root[data-theme='09'] .workspace-actions { gap: 5px; }
+:root[data-theme='09'] .workspace-actions select { font-family: 'IBM Plex Mono', monospace; width: 132px; }
+:root[data-theme='09'] select option { background: #000000; color: #FFA028; }
+:root[data-theme='09'] .palette { padding: 12px 10px; background: #000000; }
+:root[data-theme='09'] .brand h2 { font: 600 23px 'IBM Plex Sans Condensed', sans-serif; }
+:root[data-theme='09'] .brand p { font: 10px 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .palette-content h3 { margin: 20px 0 8px; color: #FFA028; padding: 4px; background: #252525; }
+:root[data-theme='09'] .palette-item { padding: 7px 2px; gap: 5px; margin: 0; border-bottom: 1px solid #343434; }
+:root[data-theme='09'] .palette-item strong { font-size: 13px; }
+:root[data-theme='09'] .palette-item small { font-size: 10px; }
+:root[data-theme='09'] .palette-icon { background: transparent; flex-basis: 24px; border: 0; }
+:root[data-theme='09'] .palette-icon-actual[fill] { fill: #FFA028; }
+:root[data-theme='09'] .palette-icon-actual[stroke] { stroke: #FFA028; }
+:root[data-theme='09'] .palette-hint { font-size: 10px; margin: 18px 0; }
+:root[data-theme='09'] .local-dot { display: none; }
+:root[data-theme='09'] .canvas-grid.kpi-table-layout .react-grid-layout { gap: 6px; }
+:root[data-theme='09'] .canvas-grid.kpi-table-layout .canvas-card { margin: 0; padding: 8px; min-height: 265px; border: 1px solid #454545; }
+:root[data-theme='09'] .canvas-grid.kpi-table-layout .kind-insight { min-height: 0; padding: 8px 10px; }
+:root[data-theme='09'] .canvas-grid.kpi-table-layout .kind-kpi { min-height: 0; padding: 2px 6px; border-bottom: 0; }
+:root[data-theme='09'] .canvas-grid.kpi-table-layout .kind-kpi:nth-last-child(1 of .kind-kpi) { border-bottom: 1px solid #454545; }
+:root[data-theme='09'] .canvas-grid.kpi-table-layout .kind-waterfall { grid-column: 1 / -1; }
+:root[data-theme='09'] .canvas-card.selected { outline: 1px solid #0068FF; outline-offset: -1px; }
+:root[data-theme='09'] .card-heading { padding: 4px 6px; margin: -8px -8px 8px; background: #252525; gap: 6px; }
+:root[data-theme='09'] .card-heading::before { content: 'DATA <GO>'; color: #FFA028; font: 600 12px 'IBM Plex Sans Condensed', sans-serif; }
+:root[data-theme='09'] .kind-insight .card-heading::before { content: 'ANLS <GO>'; }
+:root[data-theme='09'] .kind-waterfall .card-heading::before { content: 'MARG <GO>'; }
+:root[data-theme='09'] .kind-trend .card-heading::before { content: 'HIST <GO>'; }
+:root[data-theme='09'] .card-heading h3 { color: #bdbdbd; font-size: 11px; font-weight: 400; }
+:root[data-theme='09'] .insight-content h2 { font: 600 26px/1.1 'IBM Plex Sans Condensed', sans-serif; letter-spacing: -.3px; max-width: 650px; margin-bottom: 8px; }
+:root[data-theme='09'] .insight-content p { font: 13px/1.4 'IBM Plex Sans Condensed', sans-serif; max-width: 95ch; }
+:root[data-theme='09'] .insight-actions { margin-top: 8px; padding-top: 0; }
+:root[data-theme='09'] .kpi-table-row table { font: 11px 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .kpi-table-row th, :root[data-theme='09'] .kpi-table-row td { padding: 3px 4px; background: transparent; }
+:root[data-theme='09'] .kpi-table-row thead th { background: #252525; font-size: 10px; color: #bdbdbd; }
+:root[data-theme='09'] .kind-kpi:nth-child(1 of .kind-kpi)::before { content: 'KPI <GO> / FG = samma månad i fjol'; font-size: 12px; background: #252525; margin: -2px -6px 6px; padding: 4px 6px; }
+:root[data-theme='09'] .indexed-sparkline { color: #FFA028; height: 20px; }
+:root[data-theme='09'] .card-subtitle { margin-bottom: 4px; font-size: 10px; }
+:root[data-theme='09'] .kind-trend .chart text[fill='#000'], :root[data-theme='09'] .detail-chart:not(.product-detail) .chart text[fill='#000'] { fill: #ffffff; }
+:root[data-theme='09'] .detail-summary > strong { font: 600 42px 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .detail-description { font: 15px/1.4 'IBM Plex Sans Condensed', sans-serif; }
+:root[data-theme='09'] .breadcrumbs button { color: #FFA028; }
+:root[data-theme='09'] .how-button:hover { color: #ffffff; }
+:root[data-theme='09'] .detail-chart { padding: 10px; }
+:root[data-theme='09'] .calculation-result strong { color: #FFA028; }
+:root[data-theme='09'] .assistant-heading { min-height: 52px; padding: 8px 12px; background: #252525; }
+:root[data-theme='09'] .assistant-heading h2 { font: 600 20px 'IBM Plex Sans Condensed', sans-serif; }
+:root[data-theme='09'] .assistant-heading p { font-size: 10px; }
+:root[data-theme='09'] .settings-button { top: 7px; right: 8px; color: #FFA028; }
+:root[data-theme='09'] .assistant-tabs { padding: 3px 8px; gap: 4px; }
+:root[data-theme='09'] .assistant-tabs button { padding: 4px; }
+:root[data-theme='09'] .assistant-tabs button[aria-selected='true'] { color: #ffffff; background: #0068FF; }
+:root[data-theme='09'] .assistant-messages { padding: 8px 12px; }
+:root[data-theme='09'] .analyst-memo { font: 12px/1.4 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .analyst-memo::before { content: 'ANALYST NOTE'; display: block; background: #252525; color: #FFA028; font: 600 14px 'IBM Plex Sans Condensed', sans-serif; padding: 4px 6px; }
+:root[data-theme='09'] .analyst-memo h2 { font: 600 25px/1.1 'IBM Plex Sans Condensed', sans-serif; margin: 8px 0; }
+:root[data-theme='09'] .memo-status { margin: 5px 0; font-size: 11px; }
+:root[data-theme='09'] .memo-limits { font: 12px/1.4 'IBM Plex Sans Condensed', sans-serif; border-bottom: 1px solid #454545; padding-bottom: 8px; margin-bottom: 4px; }
+:root[data-theme='09'] .memo-findings li { padding: 8px 0; margin: 0; border-bottom: 1px solid #343434; }
+:root[data-theme='09'] .finding-number { color: #ffffff; }
+:root[data-theme='09'] .memo-review-actions { gap: 16px; padding-top: 3px; font: 11px 'IBM Plex Sans Condensed', sans-serif; }
+:root[data-theme='09'] .memo-footnote { color: #c4d8ff; }
+:root[data-theme='09'] .memo-signoff { font-size: 10px; padding: 8px 0; line-height: 1.5; color: #bdbdbd; }
+:root[data-theme='09'] .memo-confidence, :root[data-theme='09'] .memo-method { font: 12px/1.4 'IBM Plex Sans Condensed', sans-serif; }
+:root[data-theme='09'] .memo-log { border: 1px solid #454545; }
+:root[data-theme='09'] .memo-log > summary { padding: 4px 6px; background: #252525; }
+:root[data-theme='09'] .memo-log table, :root[data-theme='09'] .memo-log pre { font-family: 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .memo-log th, :root[data-theme='09'] .memo-log td { padding: 4px; border: 1px solid #343434; }
+:root[data-theme='09'] .memo-review-form textarea { background: #000000; border: 1px solid #929292; }
+:root[data-theme='09'] .assistant-chips { counter-reset: function; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; padding: 8px; border-top: 1px solid #454545; }
+:root[data-theme='09'] .assistant-chip { counter-increment: function; text-align: left; font: 12px 'IBM Plex Sans Condensed', sans-serif; background: #161616; padding: 5px 4px; }
+:root[data-theme='09'] .assistant-chip::before { content: 'F' counter(function) ' '; color: #ffffff; font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+:root[data-theme='09'] .assistant-input { padding: 8px; gap: 4px; align-items: center; }
+:root[data-theme='09'] .assistant-input::before { content: '>'; font: 16px 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .assistant-input input { padding: 6px; color: #FFA028; border: 0; border-bottom: 1px solid #FFA028; font: 11px 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .assistant-input button { font-size: 0; padding: 7px 9px; }
+:root[data-theme='09'] .assistant-input button::after { content: '<GO>'; font: 12px 'IBM Plex Mono', monospace; }
+:root[data-theme='09'] .approval-badge { display: none; }
+:root[data-theme='09'] .watch-card { padding: 10px; border: 1px solid #929292; font: 12px/1.4 'IBM Plex Sans Condensed', sans-serif; }
+:root[data-theme='09'] .watch-card h3 { font: 600 18px 'IBM Plex Sans Condensed', sans-serif; margin: 0 0 8px; }
+:root[data-theme='09'] .terminal-status { position: fixed; bottom: 0; left: 0; right: 0; height: 24px; background: #252525; border-top: 1px solid #929292; color: #bdbdbd; font: 10px/23px 'IBM Plex Mono', monospace; padding: 0 10px; z-index: 10; }
+:root[data-theme='09'] .theme-indicator { bottom: 27px; font-size: 9px; }
+:root[data-theme='09'] .calculation-drawer::backdrop, :root[data-theme='09'] .settings-dialog::backdrop, :root[data-theme='09'] .upload-dialog::backdrop { backdrop-filter: none; }
+@media (min-width: 1280px) {
+  :root[data-theme='09'] .app-shell { grid-template-columns: 164px minmax(0, 1fr) 460px; }
+}
+@media (min-width: 900px) and (max-width: 1279px) {
+  :root[data-theme='09'] .app-shell { grid-template-columns: 135px minmax(0, 1fr) 360px; }
+  :root[data-theme='09'] .canvas-grid.kpi-table-layout .react-grid-layout { grid-template-columns: minmax(0, 1fr); }
+  :root[data-theme='09'] .kpi-table-row table { min-width: 520px; }
+}
+@media (max-width: 899px) {
+  :root[data-theme='09'] .app-shell { height: auto; min-height: calc(100dvh - 52px); }
+  :root[data-theme='09'] .palette { padding: 10px 14px; }
+  :root[data-theme='09'] .workspace-header { padding: 10px 14px; }
+  :root[data-theme='09'] .canvas-grid.kpi-table-layout .mobile-cards { gap: 6px; }
+  :root[data-theme='09'] .canvas-grid.kpi-table-layout .kind-kpi { margin-bottom: -6px; }
+  :root[data-theme='09'] .assistant-toggle { bottom: 36px; }
+  :root[data-theme='09'] .assistant-panel { bottom: 24px; padding-bottom: 65px; }
+  :root[data-theme='09'] .terminal-status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px; }
+}
