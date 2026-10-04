@@ -11,6 +11,8 @@ import { OrderLines } from './OrderLines'
 import { fmtKr } from './valueFormat'
 import { priceClause } from '../analysis/answers'
 import { HowButton } from './HowButton'
+import { getTheme } from '../theme'
+import { KpiBullet, KpiTableRow } from './charts/KpiVariants'
 
 export const monthName = (month: string) => fmtMonth(month).replace(/ \d{4}$/, '')
 export const deltaLabel = (dashboard: Dashboard, metric: Metric) => `${metric === 'margin' ? fmtPp(dashboard.snapshot.data[metric].deltaYoY) : fmtDeltaPct(dashboard.snapshot.data[metric].deltaYoY)} mot ${monthName(dashboard.month)} i fjol`
@@ -75,6 +77,10 @@ export function CardContent({ card, dashboard, engine, onDrill, onHow, onExplain
     <p>{insightText(dashboard)}</p><div className="insight-actions"><button className="primary" onClick={onExplain}>Visa varför</button>{dashboard.snapshot.data.margin.current != null && <button onClick={onWatch}>Bevaka marginalen</button>}{how}</div>
   </div>
   if (card.kind === 'kpi') {
+    const style = getTheme().kpiStyle ?? 'spark'
+    const variantProps = { metric, dashboard, id: card.id, how, onDrill: () => onDrill(metric) }
+    if (style === 'bullet') return <KpiBullet {...variantProps} />
+    if (style === 'table') return <KpiTableRow {...variantProps} />
     const kpi = dashboard.snapshot.data[metric]
     const bad = (kpi.deltaYoY ?? 0) < 0
     return <div className="kpi-content" data-testid={card.id}>

@@ -1,0 +1,9 @@
+/* Scratch layout for reviewing the memo and data graphics, not a candidate identity. */
+:root[data-theme='99'] { --font-body: Arial, sans-serif; --font-num: Arial, sans-serif; }
+@media (min-width: 1101px) {
+  :root[data-theme='99'] .app-shell { grid-template-columns: 210px minmax(0, 1fr) 480px; }
+}
+:root[data-theme='99'] .assistant-chip { border-radius: 3px; }
+:root[data-theme='99'] .kind-kpi:has(.kpi-bullet) { padding: 12px; }
+:root[data-theme='99'] .kpi-bullet .kpi-value { font-size: 25px; }
+:root[data-theme='99'] .card-title { font-size: 12px; }

@@ -6,7 +6,7 @@ import defaultTheme from '../../theme/themes/00-default'
 import type { Dashboard } from '../../analysis/dashboard'
 import type { Metric } from '../../canvas/layout'
 import type { MonthlyMetrics, ProductMetrics, WaterfallStep } from '../../data/metrics'
-import { fmtInt, fmtMonth, fmtMonthShort, fmtPct, fmtPp, fmtTkr } from '../../data/format'
+import { fmtDeltaPct, fmtInt, fmtMonth, fmtMonthShort, fmtPct, fmtPp, fmtTkr } from '../../data/format'
 
 // Kept as public default aliases for existing callers.
 export const teal = defaultTheme.chart.actual
@@ -33,18 +33,33 @@ export const metricInfo = {
   customers: { label: 'Kunder', format: fmtInt, field: 'customers' },
 } as const
 
+export function messageTitle(metric: Metric, rows: MonthlyMetrics[]): string {
+  const info = metricInfo[metric]
+  const subject = { revenue: 'Omsättningen', margin: 'Bruttomarginalen', orders: 'Antalet ordrar', customers: 'Antalet kunder' }[metric]
+  const last = rows.at(-1)
+  return last && last[info.field] != null
+    ? `${subject} är ${info.format(last[info.field])} i ${fmtMonth(last.month)}.`
+    : `${info.label} saknar underlag för perioden.`
+}
+function messageHeading(text: string, tokens: ChartTokens): EChartsOption {
+  return tokens.titleMode === 'message' ? { title: { text, left: 0, top: 0,
+    textStyle: { fontFamily: tokens.fontFamily, fontSize: tokens.labelFontSize + 2, fontWeight: 500, color: tokens.labelColor } } } : {}
+}
+
 export function trendOption(rows: MonthlyMetrics[], metric: Metric, spark = false, bad = false): EChartsOption {
   const tokens = getTheme().chart
   const info = metricInfo[metric]
   const data = rows.map(row => row[info.field])
   return {
     ...chartText(tokens),
-    grid: spark ? { left: 2, right: 5, top: 5, bottom: 3 } : { left: 60, right: 16, top: 15, bottom: 30 },
+    ...(!spark ? messageHeading(messageTitle(metric, rows), tokens) : {}),
+    grid: spark ? { left: 2, right: 5, top: 5, bottom: 3 } : { left: 60, right: 16, top: tokens.titleMode === 'message' ? 52 : 15, bottom: 30 },
     tooltip: spark ? undefined : { trigger: 'axis', valueFormatter: value => info.format(Number(value)) },
     xAxis: { type: 'category', data: rows.map(row => row.month), boundaryGap: false, show: !spark,
       axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: tokens.axisColor, fontSize: tokens.labelFontSize,
         formatter: (value: string) => value.endsWith('-01') ? `jan ${value.slice(0, 4)}` : fmtMonthShort(value) } },
     yAxis: { type: 'value', show: !spark, scale: spark || metric === 'margin', splitNumber: metric === 'margin' ? 4 : 5,
+      ...(tokens.zeroBased ? { min: 0, scale: false } : {}),
       axisLabel: { color: tokens.axisColor, fontSize: tokens.labelFontSize, formatter: (value: number) => metric === 'margin' ? fmtPct(value, 0) : info.format(value) },
       splitLine: { ...(!tokens.showGrid ? { show: false } : {}), lineStyle: { color: tokens.gridColor } } },
     series: [{ type: spark && tokens.sparkStyle === 'bar' ? 'bar' : 'line', data,
@@ -70,16 +85,24 @@ export function productOption(rows: ProductChartRow[], metric: Metric, month: st
   const format = metricInfo[metric].format
   const current = fmtMonth(month)
   const previous = fmtMonth(compareMonth)
+  const ranked = metric === 'margin' || metric === 'revenue' ? rows.filter(row => (margin ? row.marginDeltaPp : row.revenueDeltaPct) != null)
+    .slice().sort((a, b) => Math.abs((margin ? b.marginDeltaPp : b.revenueDeltaPct)!) - Math.abs((margin ? a.marginDeltaPp : a.revenueDeltaPct)!)) : []
+  const largest = ranked[0]
+  const finding = largest ? `${margin ? 'Marginalen' : 'Omsättningen'} för ${largest.product} ändrades ${margin ? fmtPp(largest.marginDeltaPp) : fmtDeltaPct(largest.revenueDeltaPct)} mot i fjol.`
+    : rows.length ? `${rows[0].product} har ${format(productValue(rows[0], metric))} mot ${format(productValue(rows[0], metric, true))} i ${previous}.`
+      : `${metricInfo[metric].label} per produkt saknar underlag för ${current}.`
   return {
     ...chartText(tokens),
-    grid: { left: 138, right: 24, top: 42, bottom: 35 },
-    legend: { right: 10, top: 0, icon: 'roundRect', itemWidth: 10, itemHeight: 10, textStyle: { color: tokens.axisColor, fontSize: tokens.labelFontSize + 1 } },
+    ...messageHeading(finding, tokens),
+    grid: { left: 138, right: 24, top: tokens.titleMode === 'message' ? 82 : 42, bottom: 35 },
+    legend: { right: 10, top: tokens.titleMode === 'message' ? 48 : 0, icon: 'roundRect', itemWidth: 10, itemHeight: 10, textStyle: { color: tokens.axisColor, fontSize: tokens.labelFontSize + 1 } },
     tooltip: { trigger: 'axis', valueFormatter: value => format(Number(value)) },
-    xAxis: { type: 'value', axisLabel: { color: tokens.axisColor, fontSize: tokens.labelFontSize, formatter: (value: number) => format(value) }, splitLine: { ...(!tokens.showGrid ? { show: false } : {}), lineStyle: { color: tokens.gridColor } } },
+    xAxis: { type: 'value', ...(tokens.zeroBased ? { min: 0 } : {}), axisLabel: { color: tokens.axisColor, fontSize: tokens.labelFontSize, formatter: (value: number) => format(value) }, splitLine: { ...(!tokens.showGrid ? { show: false } : {}), lineStyle: { color: tokens.gridColor } } },
     yAxis: { type: 'category', inverse: true, data: rows.map(row => row.product), triggerEvent: true,
       axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: tokens.labelColor, fontSize: tokens.labelFontSize + 1, width: 130, overflow: 'truncate' } },
     series: [
       { name: current.charAt(0).toUpperCase() + current.slice(1), type: 'bar', barWidth: 9, ...(tokens.barMaxWidth !== defaultTheme.chart.barMaxWidth ? { barMaxWidth: tokens.barMaxWidth } : {}), barGap: '15%',
+        ...(tokens.zeroBased || tokens.findingMarkers || tokens.titleMode === 'message' ? { itemStyle: { color: tokens.actual } } : {}),
         data: rows.map(row => ({ value: productValue(row, metric), itemStyle: { color: row.outlier && margin ? tokens.bad : tokens.actual, borderRadius: [0, tokens.barRadius, tokens.barRadius, 0] } })) },
       { name: previous.charAt(0).toUpperCase() + previous.slice(1), type: 'bar', barWidth: 9, ...(tokens.barMaxWidth !== defaultTheme.chart.barMaxWidth ? { barMaxWidth: tokens.barMaxWidth } : {}),
         itemStyle: { color: tokens.previous, borderRadius: [0, tokens.barRadius, tokens.barRadius, 0] }, data: rows.map(row => productValue(row, metric, true)) },
@@ -98,14 +121,15 @@ export function waterfallOption(steps: WaterfallStep[]): EChartsOption {
   }
   return {
     ...chartText(tokens),
-    grid: { left: 52, right: 16, top: 25, bottom: 32 },
+    ...messageHeading(steps.length ? `Bruttomarginalen ändrades från ${fmtPct(steps.find(step => step.label === 'Före')?.value)} till ${fmtPct(steps.find(step => step.label === 'Nu')?.value)}.` : 'Bruttomarginalens förändring saknar underlag.', tokens),
+    grid: { left: 52, right: 16, top: tokens.titleMode === 'message' ? 58 : 25, bottom: 32 },
     tooltip: { trigger: 'axis', formatter: params => {
       const index = Array.isArray(params) ? params[0].dataIndex : 0
       const step = steps[index]
       return step ? `${step.label}: ${step.kind === 'total' ? fmtPct(step.value) : fmtPp(step.value)}` : ''
     } },
     xAxis: { type: 'category', data: steps.map(step => step.label), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: tokens.labelColor, fontSize: tokens.labelFontSize + 1 } },
-    yAxis: { type: 'value', min: steps.length ? Math.floor(Math.min(...steps.filter(step => step.kind === 'total').map(step => step.value)) / 5) * 5 : 0, max: value => Math.ceil(value.max / 2) * 2, interval: 2,
+    yAxis: { type: 'value', min: tokens.zeroBased ? 0 : steps.length ? Math.floor(Math.min(...steps.filter(step => step.kind === 'total').map(step => step.value)) / 5) * 5 : 0, max: value => Math.ceil(value.max / 2) * 2, ...(tokens.zeroBased ? { splitNumber: 5 } : { interval: 2 }),
       axisLabel: { color: tokens.axisColor, fontSize: tokens.labelFontSize, formatter: (value: number) => fmtPct(value, 0) }, splitLine: { ...(!tokens.showGrid ? { show: false } : {}), lineStyle: { color: tokens.gridColor } } },
     series: [
       { type: 'bar', stack: 'margin', data: bases, silent: true, itemStyle: { color: 'transparent', borderColor: 'transparent' }, emphasis: { disabled: true } },

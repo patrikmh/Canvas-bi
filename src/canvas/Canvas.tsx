@@ -10,6 +10,7 @@ import './canvas.css'
 import { CardContent, cardTitle } from '../components/CardContent'
 import type { Calculation } from '../components/CalculationDrawer'
 import type { SqlEngine } from '../data/engine'
+import { getTheme } from '../theme'
 
 interface Props {
   staggerRebuild?: boolean
@@ -39,7 +40,7 @@ export function Canvas(props: Props) {
     return () => observer.disconnect()
   }, [])
   const shift = (card: CanvasCard, amount: number) => props.onLayout(toolbarLayout(props.document.layout, card.id, amount < 0 ? 'left' : 'right'))
-  const cards = props.document.cards.map(card => <div key={card.id} className={`canvas-card kind-${card.kind} ${card.kind === 'insight' ? 'insight-card' : ''} ${props.selected === card.id ? 'selected' : ''}`}
+  const cards = props.document.cards.map(card => <div key={card.id} className={`canvas-card kind-${card.kind} ${card.kind === 'insight' ? 'insight-card' : ''} ${props.selected === card.id ? 'selected' : ''}${getTheme().kpiStyle === 'table' ? ` metric-${card.metric}` : ''}`}
     style={{ animationDelay: `${entranceDelays.current.get(card.id) ?? 0}ms` }} data-testid={`card-${card.id}`}  data-card-id={card.id} tabIndex={0} onFocus={event => { if (event.target === event.currentTarget) props.onSelect(card.id) }} onClick={event => { if (!(event.target as HTMLElement).closest('button,input,textarea')) props.onSelect(card.id) }}
     onDoubleClick={event => { if (!(event.target as HTMLElement).closest('button,input,textarea')) props.onDrill(card.metric ?? (card.kind === 'waterfall' ? 'margin' : 'revenue'), card.kind === 'bars' || card.kind === 'table') }}>
     <div className="card-toolbar" aria-label={`Verktyg för ${cardTitle(card)}`}>
@@ -51,7 +52,7 @@ export function Canvas(props: Props) {
     <div className="card-heading"><span className="drag-handle" aria-label={`Dra ${cardTitle(card)}`} title="Dra för att flytta" onPointerDown={() => props.onSelect(card.id)}>⠿</span><h3 className="card-title">{cardTitle(card)}</h3></div>
     <CardContent card={card} dashboard={props.dashboard} engine={props.engine} onDrill={props.onDrill} onHow={props.onHow} onExplain={props.onExplain} onWatch={props.onWatch} onNote={props.onNote} />
   </div>)
-  return <div ref={container} className="canvas-grid" data-testid="canvas" onDragOverCapture={event => event.preventDefault()}
+  return <div ref={container} className={`canvas-grid${getTheme().kpiStyle === 'table' ? ' kpi-table-layout' : ''}`} data-testid="canvas" onDragOverCapture={event => event.preventDefault()}
     onDropCapture={event => {
       const kind = event.dataTransfer.getData('application/canvas-card') as CardKind
       if (!['kpi', 'trend', 'bars', 'waterfall', 'table', 'insight', 'text'].includes(kind)) return

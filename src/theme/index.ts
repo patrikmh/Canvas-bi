@@ -12,11 +12,13 @@ let activeTheme: ThemeDefinition = defaultTheme
 /** Parse the supported ID range; initializeTheme resolves IDs not yet registered. */
 export function readThemeId(search = typeof location === 'undefined' ? '' : location.search): string {
   const id = new URLSearchParams(search).get('theme')
+  if (id === '99' && new URLSearchParams(search).get('designPreview') === '1') return id
   return id && /^(0[0-9]|10)$/.test(id) ? id : '00'
 }
 
 export function initializeTheme(): void {
   activeTheme = themes[readThemeId()] ?? defaultTheme
+  if (activeTheme.id === '99' && new URLSearchParams(location.search).get('kpi') === 'table') activeTheme = { ...activeTheme, kpiStyle: 'table' }
   document.documentElement.dataset.theme = activeTheme.id
   document.querySelector('.theme-indicator')?.remove()
   if (new URLSearchParams(location.search).has('theme')) {
